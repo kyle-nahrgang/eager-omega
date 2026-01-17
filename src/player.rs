@@ -220,6 +220,23 @@ impl Player {
                 ..Default::default()
             },
         );
+        if self.hair_style != HairStyle::Base {
+            let hair_texture = self
+                .textures
+                .get(&(self.hair_style, self.current_action))
+                .unwrap();
+            draw_texture_ex(
+                &hair_texture,
+                self.position.x,
+                self.position.y,
+                WHITE,
+                DrawTextureParams {
+                    source: Some(self.player_uv(self.current_frame)),
+                    dest_size: Some(vec2(48.0, 32.0)),
+                    ..Default::default()
+                },
+            );
+        }
     }
 
     fn player_uv(&self, frame: u16) -> Rect {
