@@ -1,8 +1,8 @@
 use macroquad::prelude::*;
 
-use crate::human::{HairStyle, Human};
+use crate::characters::{HairStyle, Human};
 
-pub mod human;
+pub mod characters;
 pub mod world_map;
 
 #[macroquad::main("Simple Tilemap")]

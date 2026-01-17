@@ -58,7 +58,6 @@ impl Action {
             Action::IDLE => 9,
             Action::WALKING => 8,
             Action::ROLL => 10,
-            _ => 1, // Default to 1 frame for unimplemented actions
         }
     }
 
