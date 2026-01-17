@@ -40,7 +40,6 @@ async fn main() {
         set_default_camera();
 
         // Highlight the tile the player is on
-        draw_text("Debug", 50.0, 50.0, 20.0, WHITE);
         draw_text(
             &format!("{:.2}, {:.2})", player.position.x, player.position.y),
             50.0,

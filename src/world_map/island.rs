@@ -1,19 +1,16 @@
 use macroquad::{prelude::*, rand::ChooseRandom};
 
-use crate::world_map::{layer::Layer, tileset::IslandTile};
+use crate::world_map::{layer::Layer, tileset::TileIndex};
 
 pub struct Island {
-    pub tiles: Vec<Vec<Option<u32>>>,
+    pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
 }
 
 impl Layer for Island {
-    fn is_collision(&self, position: Vec2, size: Vec2) -> bool {
+    fn is_collision(&self, position: Vec2, _size: Vec2) -> bool {
         let min_x = (position.x / 16.0).floor() as i32;
         let min_y = (position.y / 16.0).floor() as i32;
-
-        let max_x = ((position.x + size.x) / 16.0).floor() as i32;
-        let max_y = ((position.y + size.y) / 16.0).floor() as i32;
 
         if self.tiles[min_y as usize][min_x as usize].is_none() {
             return true;
@@ -21,7 +18,7 @@ impl Layer for Island {
         false
     }
 
-    fn get_tile(&self, x: usize, y: usize) -> Option<u32> {
+    fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }
 }
@@ -50,7 +47,7 @@ impl Island {
         );
 
         land_tiles.push((center_x, center_y));
-        tiles[center_y][center_x] = Some(IslandTile::Sand as u32);
+        tiles[center_y][center_x] = Some(TileIndex::Sand);
 
         // Number of steps proportional to bounding box size
         let num_steps = rand::RandomRange::gen_range(
@@ -59,10 +56,10 @@ impl Island {
         );
 
         let center_options = vec![
-            IslandTile::Sand,
-            IslandTile::SandSpotted1,
-            IslandTile::SandSpotted2,
-            IslandTile::SandSpotted3,
+            TileIndex::Sand,
+            TileIndex::SandSpotted1,
+            TileIndex::SandSpotted2,
+            TileIndex::SandSpotted3,
         ];
 
         let rx = island_width as f32 * 0.5;
@@ -87,13 +84,14 @@ impl Island {
                     continue;
                 }
 
-                tiles[ny][nx] = Some(*center_options.choose().unwrap() as u32);
+                tiles[ny][nx] = Some(*center_options.choose().unwrap());
                 land_tiles.push((nx, ny));
             }
         }
 
         Self::fill_single_tile_gaps(&mut tiles);
         Self::add_island_edges(&mut tiles);
+        Self::add_island_edge_corners(&mut tiles);
 
         Self { tiles, center }
     }
@@ -101,10 +99,10 @@ impl Island {
     fn inside_radius(cx: i32, cy: i32, x: i32, y: i32, rx: f32, ry: f32) -> bool {
         let dx = (x - cx) as f32 / rx;
         let dy = (y - cy) as f32 / ry;
-        dx * dx + dy * dy <= 2.0
+        dx * dx + dy * dy <= 32.0
     }
 
-    fn fill_single_tile_gaps(grid: &mut Vec<Vec<Option<u32>>>) {
+    fn fill_single_tile_gaps(grid: &mut Vec<Vec<Option<TileIndex>>>) {
         let height = grid.len();
         let width = grid[0].len();
 
@@ -132,12 +130,12 @@ impl Island {
                         | (true, false, true, true)
                         | (false, true, true, true) => {
                             found_gap = true;
-                            IslandTile::Sand
+                            TileIndex::Sand
                         }
                         _ => continue,
                     };
 
-                    grid[y][x] = Some(tile as u32);
+                    grid[y][x] = Some(tile);
                 }
             }
 
@@ -148,7 +146,7 @@ impl Island {
     }
 
     // Determine tile type based on neighbors
-    fn add_island_edges(grid: &mut Vec<Vec<Option<u32>>>) {
+    fn add_island_edges(grid: &mut Vec<Vec<Option<TileIndex>>>) {
         let height = grid.len();
         let width = grid[0].len();
 
@@ -170,21 +168,21 @@ impl Island {
                 let tile = match (top, bottom, left, right) {
                     // Corners
                     (false, true, true, true) | (false, true, false, false) => {
-                        IslandTile::SandEdgeTop
+                        TileIndex::SandEdgeTop
                     }
                     (true, false, true, true) | (true, false, false, false) => {
-                        IslandTile::SandEdgeBottom
+                        TileIndex::SandEdgeBottom
                     }
                     (true, true, false, true) | (false, false, false, true) => {
-                        IslandTile::SandEdgeLeft
+                        TileIndex::SandEdgeLeft
                     }
                     (true, true, true, false) | (false, false, true, false) => {
-                        IslandTile::SandEdgeRight
+                        TileIndex::SandEdgeRight
                     }
-                    (false, true, false, true) => IslandTile::SandCornerTopLeft,
-                    (false, true, true, false) => IslandTile::SandCornerTopRight,
-                    (true, false, false, true) => IslandTile::SandCornerBottomLeft,
-                    (true, false, true, false) => IslandTile::SandCornerBottomRight,
+                    (false, true, false, true) => TileIndex::SandEdgeTopLeft,
+                    (false, true, true, false) => TileIndex::SandEdgeTopRight,
+                    (true, false, false, true) => TileIndex::SandEdgeBottomLeft,
+                    (true, false, true, false) => TileIndex::SandEdgeBottomRight,
                     (false, false, false, false) => continue,
                     _ => {
                         println!(
@@ -195,7 +193,42 @@ impl Island {
                     }
                 };
 
-                grid[y][x] = Some(tile as u32);
+                grid[y][x] = Some(tile);
+            }
+        }
+    }
+
+    fn add_island_edge_corners(grid: &mut Vec<Vec<Option<TileIndex>>>) {
+        let height = grid.len();
+        let width = grid[0].len();
+
+        // Work on a copy so we don't interfere while iterating
+        let original = grid.clone();
+
+        for y in 0..height {
+            for x in 0..width {
+                // Only consider blank tiles
+                if original[y][x].is_some() {
+                    continue;
+                }
+
+                let top: bool = y > 0 && original[y - 1][x].is_some_and(|t| !t.is_bottom_edge());
+                let bottom: bool =
+                    y + 1 < height && original[y + 1][x].is_some_and(|t| !t.is_top_edge());
+                let left: bool = x > 0 && original[y][x - 1].is_some();
+                let right: bool = x + 1 < width && original[y][x + 1].is_some();
+
+                let tile = match (top, bottom, left, right) {
+                    (false, true, false, true) => TileIndex::SandCornerTopLeft,
+                    (false, true, true, false) => TileIndex::SandCornerTopRight,
+                    (true, false, false, true) => TileIndex::SandCornerBottomLeft,
+                    (true, false, true, false) => TileIndex::SandCornerBottomRight,
+                    _ => {
+                        continue;
+                    }
+                };
+
+                grid[y][x] = Some(tile);
             }
         }
     }

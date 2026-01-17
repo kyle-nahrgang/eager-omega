@@ -1,9 +1,9 @@
 use macroquad::math::Vec2;
 
-use crate::world_map::{layer::Layer, tileset::OceanTile};
+use crate::world_map::{layer::Layer, tileset::TileIndex};
 
 pub struct Ocean {
-    tiles: Vec<Vec<Option<u32>>>,
+    tiles: Vec<Vec<Option<TileIndex>>>,
 }
 
 impl Layer for Ocean {
@@ -11,7 +11,7 @@ impl Layer for Ocean {
         false
     }
 
-    fn get_tile(&self, x: usize, y: usize) -> Option<u32> {
+    fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }
 }
@@ -20,35 +20,35 @@ impl Ocean {
     pub fn new(width: usize, height: usize) -> Self {
         let tiles_map = [
             [
-                OceanTile::Ocean1,
-                OceanTile::Ocean2,
-                OceanTile::Ocean3,
-                OceanTile::Ocean4,
+                TileIndex::Ocean1,
+                TileIndex::Ocean2,
+                TileIndex::Ocean3,
+                TileIndex::Ocean4,
             ],
             [
-                OceanTile::Ocean5,
-                OceanTile::Ocean6,
-                OceanTile::Ocean7,
-                OceanTile::Ocean8,
+                TileIndex::Ocean5,
+                TileIndex::Ocean6,
+                TileIndex::Ocean7,
+                TileIndex::Ocean8,
             ],
             [
-                OceanTile::Ocean9,
-                OceanTile::Ocean10,
-                OceanTile::Ocean11,
-                OceanTile::Ocean12,
+                TileIndex::Ocean9,
+                TileIndex::Ocean10,
+                TileIndex::Ocean11,
+                TileIndex::Ocean12,
             ],
             [
-                OceanTile::Ocean13,
-                OceanTile::Ocean14,
-                OceanTile::Ocean15,
-                OceanTile::Ocean16,
+                TileIndex::Ocean13,
+                TileIndex::Ocean14,
+                TileIndex::Ocean15,
+                TileIndex::Ocean16,
             ],
         ];
 
         let mut tiles = vec![vec![None; width]; height];
         for y in 0..height {
             for x in 0..width {
-                tiles[y][x] = Some(tiles_map[y % 4][x % 4] as u32);
+                tiles[y][x] = Some(tiles_map[y % 4][x % 4]);
             }
         }
 

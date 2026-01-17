@@ -75,7 +75,7 @@ impl WorldMap {
             for x in start_x..end_x {
                 for layer in &self.layers {
                     if let Some(tile) = layer.get_tile(x, y) {
-                        let rect = self.tile_uv(tile);
+                        let rect = self.tile_uv(tile as u32);
 
                         if rect.is_none() {
                             continue; // Empty tile
