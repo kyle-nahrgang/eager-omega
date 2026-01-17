@@ -143,7 +143,7 @@ pub struct Human {
 impl Human {
     pub async fn new(position: Vec2, speed: f32, hair_style: HairStyle) -> Self {
         let mut textures = std::collections::HashMap::new();
-        for action in [IDLE_ACTION, MOVE_ACTION] {
+        for action in [IDLE_ACTION, MOVE_ACTION, Action::ROLL] {
             if hair_style != HairStyle::Base {
                 let texture_path = action.get_path(HairStyle::Base);
                 let texture = load_texture(&texture_path).await.unwrap();
@@ -174,19 +174,32 @@ impl Human {
         let mut direction = vec2(0.0, 0.0);
         let prev_action = self.current_action;
 
-        if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) {
+        let mut is_rolling = self.current_action == Action::ROLL
+            && self.current_frame != Action::ROLL.frame_count() - 1;
+
+        if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) || (is_rolling && self.flip_x) {
             direction.x -= 1.0;
             self.flip_x = true;
         }
-        if is_key_down(KeyCode::D) || is_key_down(KeyCode::Right) {
+
+        if is_key_down(KeyCode::D) || is_key_down(KeyCode::Right) || (is_rolling && !self.flip_x) {
             direction.x += 1.0;
             self.flip_x = false;
         }
+
         if is_key_down(KeyCode::W) || is_key_down(KeyCode::Up) {
             direction.y -= 1.0;
         }
+
         if is_key_down(KeyCode::S) || is_key_down(KeyCode::Down) {
             direction.y += 1.0;
+        }
+
+        if is_key_down(KeyCode::Space) && !is_rolling {
+            is_rolling = true;
+            self.current_action = Action::ROLL;
+            self.current_frame = 0;
+            self.frame_timer = 0.0;
         }
 
         let new_velocity = if direction.length() > 0.0 {
@@ -200,10 +213,18 @@ impl Human {
 
         if direction.length() > 0.0 && !collision {
             self.velocity = new_velocity;
-            self.current_action = MOVE_ACTION;
+            self.current_action = if is_rolling {
+                Action::ROLL
+            } else {
+                MOVE_ACTION
+            };
         } else {
             self.velocity = Vec2::ZERO;
-            self.current_action = IDLE_ACTION;
+            self.current_action = if is_rolling {
+                Action::ROLL
+            } else {
+                IDLE_ACTION
+            };
         }
 
         if prev_action != self.current_action {
