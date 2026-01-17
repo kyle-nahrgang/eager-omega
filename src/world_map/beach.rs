@@ -18,6 +18,16 @@ impl BeachLayer {
         self.tiles[y][x]
     }
 
+    pub fn get_bounds(&self) -> (Vec2, Vec2) {
+        return (
+            vec2(0.0, 0.0),
+            vec2(
+                self.tiles[0].len() as f32 * 16.0,
+                self.tiles.len() as f32 * 16.0,
+            ),
+        );
+    }
+
     pub fn new(width: usize, height: usize) -> Self
     where
         Self: Sized,

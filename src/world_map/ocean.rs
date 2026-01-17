@@ -1,3 +1,5 @@
+use macroquad::math::{Vec2, vec2};
+
 use crate::world_map::tileset::TileIndex;
 
 #[derive(Debug, Clone)]
@@ -8,6 +10,16 @@ pub struct OceanLayer {
 impl OceanLayer {
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
+    }
+
+    pub fn get_bounds(&self) -> (Vec2, Vec2) {
+        return (
+            vec2(0.0, 0.0),
+            vec2(
+                self.tiles[0].len() as f32 * 16.0,
+                self.tiles.len() as f32 * 16.0,
+            ),
+        );
     }
 
     pub fn new(width: usize, height: usize) -> Self

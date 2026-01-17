@@ -15,13 +15,23 @@ pub enum Layer {
     Grass(GrassLayer),
 }
 
+macro_rules! delegate_layer {
+    ($self:expr, $method:ident($($arg:expr),*)) => {
+        match $self {
+            Layer::Ocean(l) => l.$method($($arg),*),
+            Layer::Beach(l) => l.$method($($arg),*),
+            Layer::Grass(l) => l.$method($($arg),*),
+        }
+    };
+}
+
 impl Layer {
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
-        match self {
-            Layer::Ocean(layer) => layer.get_tile(x, y),
-            Layer::Beach(layer) => layer.get_tile(x, y),
-            Layer::Grass(layer) => layer.get_tile(x, y),
-        }
+        delegate_layer!(self, get_tile(x, y))
+    }
+
+    pub fn get_bounds(&self) -> (Vec2, Vec2) {
+        delegate_layer!(self, get_bounds())
     }
 
     pub fn to_string(&self) -> &'static str {
