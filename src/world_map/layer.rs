@@ -11,8 +11,8 @@ pub trait Layer {
     fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex>;
 }
 
-pub trait TileSet {
-    fn tiles() -> &'static [TileIndex];
+pub trait TerrainCenterTileSet {
+    fn center_tiles() -> &'static [TileIndex];
 }
 
 pub trait TerrainCornerTileSet {
@@ -32,16 +32,10 @@ pub trait TerrainEdgeTileSet {
     fn top_left_edge() -> TileIndex;
 }
 
-pub trait TerrainLayerGenerator {
-    type CenterTileSetType: TileSet;
-    type EdgeTileSetType: TerrainEdgeTileSet;
-    type CornerTileSetType: TerrainCornerTileSet;
-
-    fn center_tiles(&self) -> &'static [TileIndex] {
-        Self::CenterTileSetType::tiles()
-    }
-
-    fn generate_layer(&self, width: usize, height: usize) -> (Vec2, Vec<Vec<Option<TileIndex>>>) {
+pub trait TerrainLayerGenerator:
+    TerrainCenterTileSet + TerrainCornerTileSet + TerrainEdgeTileSet
+{
+    fn generate_layer(width: usize, height: usize) -> (Vec2, Vec<Vec<Option<TileIndex>>>) {
         let mut tiles = vec![vec![None; width]; height];
 
         rand::srand(1);
@@ -78,18 +72,18 @@ pub trait TerrainLayerGenerator {
                     continue;
                 }
 
-                tiles[ny][nx] = Some(*self.center_tiles().choose().unwrap());
+                tiles[ny][nx] = Some(*Self::center_tiles().choose().unwrap());
                 land_tiles.push((nx, ny));
             }
         }
 
-        self.fill_single_tile_gaps(&mut tiles);
-        self.populate_edges(&mut tiles);
-        self.populate_corners(&mut tiles);
+        Self::fill_single_tile_gaps(&mut tiles);
+        Self::populate_edges(&mut tiles);
+        Self::populate_corners(&mut tiles);
         (center, tiles)
     }
 
-    fn fill_single_tile_gaps(&self, tiles: &mut Vec<Vec<Option<TileIndex>>>) {
+    fn fill_single_tile_gaps(tiles: &mut Vec<Vec<Option<TileIndex>>>) {
         let height = tiles.len();
         let width = tiles[0].len();
 
@@ -117,7 +111,7 @@ pub trait TerrainLayerGenerator {
                         | (true, false, true, true)
                         | (false, true, true, true) => {
                             found_gap = true;
-                            Some(*self.center_tiles().choose().unwrap())
+                            Some(*Self::center_tiles().choose().unwrap())
                         }
                         _ => continue,
                     };
@@ -132,7 +126,7 @@ pub trait TerrainLayerGenerator {
         }
     }
 
-    fn populate_edges(&self, tiles: &mut Vec<Vec<Option<TileIndex>>>) {
+    fn populate_edges(tiles: &mut Vec<Vec<Option<TileIndex>>>) {
         let height = tiles.len();
         let width = tiles[0].len();
 
@@ -153,22 +147,14 @@ pub trait TerrainLayerGenerator {
 
                 let tile = match (top, bottom, left, right) {
                     // Corners
-                    (false, true, true, true) | (false, true, false, false) => {
-                        Self::EdgeTileSetType::top_edge()
-                    }
-                    (true, false, true, true) | (true, false, false, false) => {
-                        Self::EdgeTileSetType::bottom_edge()
-                    }
-                    (true, true, false, true) | (false, false, false, true) => {
-                        Self::EdgeTileSetType::left_edge()
-                    }
-                    (true, true, true, false) | (false, false, true, false) => {
-                        Self::EdgeTileSetType::right_edge()
-                    }
-                    (false, true, false, true) => Self::EdgeTileSetType::top_left_edge(),
-                    (false, true, true, false) => Self::EdgeTileSetType::top_right_edge(),
-                    (true, false, false, true) => Self::EdgeTileSetType::bottom_left_edge(),
-                    (true, false, true, false) => Self::EdgeTileSetType::bottom_right_edge(),
+                    (false, true, true, true) | (false, true, false, false) => Self::top_edge(),
+                    (true, false, true, true) | (true, false, false, false) => Self::bottom_edge(),
+                    (true, true, false, true) | (false, false, false, true) => Self::left_edge(),
+                    (true, true, true, false) | (false, false, true, false) => Self::right_edge(),
+                    (false, true, false, true) => Self::top_left_edge(),
+                    (false, true, true, false) => Self::top_right_edge(),
+                    (true, false, false, true) => Self::bottom_left_edge(),
+                    (true, false, true, false) => Self::bottom_right_edge(),
                     (false, false, false, false) => continue,
                     _ => {
                         println!(
@@ -184,7 +170,7 @@ pub trait TerrainLayerGenerator {
         }
     }
 
-    fn populate_corners(&self, tiles: &mut Vec<Vec<Option<TileIndex>>>) {
+    fn populate_corners(tiles: &mut Vec<Vec<Option<TileIndex>>>) {
         let height = tiles.len();
         let width = tiles[0].len();
 
@@ -198,21 +184,19 @@ pub trait TerrainLayerGenerator {
                     continue;
                 }
 
-                let top: bool = y > 0
-                    && original[y - 1][x]
-                        .is_some_and(|t| t != Self::EdgeTileSetType::bottom_edge());
-                let bottom: bool = y + 1 < height
-                    && original[y + 1][x].is_some_and(|t| t != Self::EdgeTileSetType::top_edge());
-                let left: bool = x > 0
-                    && original[y][x - 1].is_some_and(|t| t != Self::EdgeTileSetType::right_edge());
-                let right: bool = x + 1 < width
-                    && original[y][x + 1].is_some_and(|t| t != Self::EdgeTileSetType::left_edge());
-
+                let top: bool =
+                    y > 0 && original[y - 1][x].is_some_and(|t| t != Self::bottom_edge());
+                let bottom: bool =
+                    y + 1 < height && original[y + 1][x].is_some_and(|t| t != Self::top_edge());
+                let left: bool =
+                    x > 0 && original[y][x - 1].is_some_and(|t| t != Self::right_edge());
+                let right: bool =
+                    x + 1 < width && original[y][x + 1].is_some_and(|t| t != Self::left_edge());
                 let tile = match (top, bottom, left, right) {
-                    (false, true, false, true) => Self::CornerTileSetType::top_left_corner(),
-                    (false, true, true, false) => Self::CornerTileSetType::top_right_corner(),
-                    (true, false, false, true) => Self::CornerTileSetType::bottom_left_corner(),
-                    (true, false, true, false) => Self::CornerTileSetType::bottom_right_corner(),
+                    (false, true, false, true) => Self::top_left_corner(),
+                    (false, true, true, false) => Self::top_right_corner(),
+                    (true, false, false, true) => Self::bottom_left_corner(),
+                    (true, false, true, false) => Self::bottom_right_corner(),
                     _ => {
                         continue;
                     }
