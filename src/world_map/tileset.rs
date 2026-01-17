@@ -27,6 +27,22 @@ pub enum GrassTile {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum IslandTile {
+    Sand = 70,
+    SandSpotted1 = 72,
+    SandSpotted2 = 73,
+    SandSpotted3 = 74,
+    SandEdgeTop = (28 * 64) + 7,
+    SandEdgeBottom = (32 * 64) + 7,
+    SandEdgeLeft = (30 * 64) + 5,
+    SandEdgeRight = (30 * 64) + 9,
+    SandCornerTopLeft = (29 * 64) + 6,
+    SandCornerTopRight = (29 * 64) + 8,
+    SandCornerBottomLeft = (31 * 64) + 6,
+    SandCornerBottomRight = (31 * 64) + 8,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum OceanTile {
     Ocean1 = 1164,
     Ocean2 = 1165,

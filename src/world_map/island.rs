@@ -1,6 +1,9 @@
 use rand::{Rng, seq::IndexedRandom};
 
-use crate::world_map::{layer::Layer, tileset::GrassTile};
+use crate::world_map::{
+    layer::Layer,
+    tileset::{GrassTile, IslandTile},
+};
 
 pub struct Island {
     pub layer: Layer,
@@ -30,14 +33,7 @@ impl Island {
         let center_y = start_y + island_height / 2;
 
         land_tiles.push((center_x, center_y));
-        tiles[center_y][center_x] = GrassTile::GrassLight as u32;
-
-        let options = vec![
-            GrassTile::GrassSpottedLight1,
-            GrassTile::GrassSpottedLight2,
-            GrassTile::GrassSpottedLight3,
-            GrassTile::GrassSpottedLight4,
-        ];
+        tiles[center_y][center_x] = IslandTile::Sand as u32;
 
         // Number of steps proportional to bounding box size
         let num_steps =
@@ -61,7 +57,7 @@ impl Island {
                     && tiles[ny][nx] == 0
                 {
                     // Assign a random grass type
-                    tiles[ny][nx] = options.choose(&mut rng).unwrap().clone() as u32;
+                    tiles[ny][nx] = Island::assign_tile_type(&mut rng, &tiles, nx, ny);
                     land_tiles.push((nx, ny));
                 }
             }
@@ -70,5 +66,52 @@ impl Island {
         Self {
             layer: Layer::new(width, height, tiles),
         }
+    }
+
+    // Determine tile type based on neighbors
+    fn assign_tile_type(
+        rng: &mut rand::rngs::ThreadRng,
+        grid: &Vec<Vec<u32>>,
+        x: usize,
+        y: usize,
+    ) -> u32 {
+        let height = grid.len();
+        let width = grid[0].len();
+
+        // Check neighbors, treat out-of-bounds as water
+        let top = if y > 0 { grid[y - 1][x] != 0 } else { false };
+        let bottom = if y + 1 < height {
+            grid[y + 1][x] != 0
+        } else {
+            false
+        };
+        let left = if x > 0 { grid[y][x - 1] != 0 } else { false };
+        let right = if x + 1 < width {
+            grid[y][x + 1] != 0
+        } else {
+            false
+        };
+
+        let center_options = vec![
+            IslandTile::Sand,
+            IslandTile::SandSpotted1,
+            IslandTile::SandSpotted2,
+            IslandTile::SandSpotted3,
+        ];
+
+        let center: IslandTile = center_options.choose(rng).unwrap().clone();
+
+        (match (top, bottom, left, right) {
+            (true, true, true, true) => center,
+            (false, true, true, true) => IslandTile::SandEdgeTop,
+            (true, false, true, true) => IslandTile::SandEdgeBottom,
+            (true, true, false, true) => IslandTile::SandEdgeLeft,
+            (true, true, true, false) => IslandTile::SandEdgeRight,
+            (false, true, false, true) => IslandTile::SandCornerTopLeft,
+            (false, true, true, false) => IslandTile::SandCornerTopRight,
+            (true, false, false, true) => IslandTile::SandCornerBottomLeft,
+            (true, false, true, false) => IslandTile::SandCornerBottomRight,
+            _ => center, // fallback for small islands
+        }) as u32
     }
 }
