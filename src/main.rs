@@ -19,13 +19,55 @@ async fn main() {
 
         clear_background(BLACK);
 
-        world_map.camera.target = vec2(player.position.x + 24.0, player.position.y + 16.0);
+        world_map.camera.target = player.position;
         set_camera(&world_map.camera);
 
         world_map.draw();
         player.draw();
 
+        let tile_x = (player.position.x / 16.0).floor() as i32;
+        let tile_y = (player.position.y / 16.0).floor() as i32;
+
+        draw_rectangle_lines(
+            tile_x as f32 * 16.0,
+            tile_y as f32 * 16.0,
+            16.0,
+            16.0,
+            2.0,
+            RED,
+        );
+
         set_default_camera();
+
+        // Highlight the tile the player is on
+        draw_text("Debug", 50.0, 50.0, 20.0, WHITE);
+        draw_text(
+            &format!("{:.2}, {:.2})", player.position.x, player.position.y),
+            50.0,
+            70.0,
+            20.0,
+            WHITE,
+        );
+
+        draw_text(
+            &format!("Tile ({}, {})", tile_x, tile_y),
+            50.0,
+            90.0,
+            20.0,
+            WHITE,
+        );
+
+        draw_text(
+            &format!(
+                "{:?}",
+                world_map.layers[1].get_tile(tile_x as usize, tile_y as usize)
+            ),
+            50.0,
+            110.0,
+            20.0,
+            WHITE,
+        );
+
         next_frame().await;
     }
 }

@@ -166,7 +166,7 @@ impl Human {
         };
 
         let new_position = self.position + new_velocity * dt;
-        let collision = world_map.is_collision(new_position, vec2(16.0, 16.0));
+        let collision = world_map.is_collision(new_position, vec2(24.0, 16.0));
 
         if direction.length() > 0.0 && !collision {
             self.velocity = new_velocity;
@@ -206,8 +206,8 @@ impl Human {
             .unwrap();
         draw_texture_ex(
             &base_texture,
-            self.position.x,
-            self.position.y,
+            self.position.x - 24.0,
+            self.position.y - 16.0,
             WHITE,
             DrawTextureParams {
                 source: Some(self.player_uv(self.current_frame)),
@@ -223,8 +223,8 @@ impl Human {
                 .unwrap();
             draw_texture_ex(
                 &hair_texture,
-                self.position.x,
-                self.position.y,
+                self.position.x - 24.0,
+                self.position.y - 16.0,
                 WHITE,
                 DrawTextureParams {
                     source: Some(self.player_uv(self.current_frame)),

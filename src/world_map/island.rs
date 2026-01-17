@@ -15,19 +15,9 @@ impl Layer for Island {
         let max_x = ((position.x + size.x) / 16.0).floor() as i32;
         let max_y = ((position.y + size.y) / 16.0).floor() as i32;
 
-        for y in min_y..=max_y {
-            for x in min_x..=max_x {
-                if y < 0 || y >= self.tiles.len() as i32 || x < 0 || x >= self.tiles[0].len() as i32
-                {
-                    continue;
-                }
-
-                if self.tiles[y as usize][x as usize].is_none() {
-                    return true;
-                }
-            }
+        if self.tiles[min_y as usize][min_x as usize].is_none() {
+            return true;
         }
-
         false
     }
 

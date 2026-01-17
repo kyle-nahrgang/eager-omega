@@ -11,7 +11,7 @@ pub struct WorldMap {
     texture: Texture2D,
     view_width: f32,
     view_height: f32,
-    layers: Vec<Box<dyn Layer>>,
+    pub layers: Vec<Box<dyn Layer>>,
     pub camera: Camera2D,
     pub start_location: Vec2,
 }
