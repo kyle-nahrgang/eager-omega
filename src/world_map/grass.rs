@@ -1,31 +1,30 @@
-use macroquad::{prelude::*, rand::srand};
+use macroquad::prelude::*;
 
 use crate::world_map::{
     layer::{
-        Layer, TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet,
-        TerrainLayerGenerator,
+        TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet, TerrainLayerGenerator,
     },
     tileset::TileIndex,
 };
 
-pub struct Grass {
+pub struct GrassLayer {
     pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
 }
 
-impl Layer for Grass {
-    fn is_collision(&self, position: Vec2, _size: Vec2) -> bool {
+impl GrassLayer {
+    pub fn is_walkable(&self, position: Vec2, _size: Vec2) -> bool {
         let min_x = (position.x / 16.0).floor() as i32;
         let min_y = (position.y / 16.0).floor() as i32;
 
         false
     }
 
-    fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
+    pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }
 
-    fn new(seed: &mut u64, width: usize, height: usize) -> Self
+    pub fn new(seed: &mut u64, width: usize, height: usize) -> Self
     where
         Self: Sized,
     {
@@ -36,7 +35,7 @@ impl Layer for Grass {
     }
 }
 
-impl TerrainEdgeTileSet for Grass {
+impl TerrainEdgeTileSet for GrassLayer {
     fn top_edge() -> TileIndex {
         TileIndex::_GrassDark
     }
@@ -63,7 +62,7 @@ impl TerrainEdgeTileSet for Grass {
     }
 }
 
-impl TerrainCornerTileSet for Grass {
+impl TerrainCornerTileSet for GrassLayer {
     fn top_right_corner() -> TileIndex {
         TileIndex::_GrassDark
     }
@@ -78,7 +77,7 @@ impl TerrainCornerTileSet for Grass {
     }
 }
 
-impl TerrainCenterTileSet for Grass {
+impl TerrainCenterTileSet for GrassLayer {
     fn center_tiles() -> &'static [TileIndex] {
         &[
             TileIndex::_GrassLight,
@@ -89,4 +88,4 @@ impl TerrainCenterTileSet for Grass {
     }
 }
 
-impl TerrainLayerGenerator for Grass {}
+impl TerrainLayerGenerator for GrassLayer {}

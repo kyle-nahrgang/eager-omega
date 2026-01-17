@@ -4,14 +4,32 @@ use macroquad::{
     rand::ChooseRandom,
 };
 
-use crate::world_map::tileset::TileIndex;
+use crate::world_map::{
+    beach::BeachLayer, grass::GrassLayer, ocean::OceanLayer, tileset::TileIndex,
+};
 
-pub trait Layer {
-    fn new(seed: &mut u64, width: usize, height: usize) -> Self
-    where
-        Self: Sized;
-    fn is_collision(&self, position: Vec2, size: Vec2) -> bool;
-    fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex>;
+pub enum Layer {
+    Ocean(OceanLayer),
+    Beach(BeachLayer),
+    Grass(GrassLayer),
+}
+
+impl Layer {
+    pub fn is_walkable(&self, position: Vec2, size: Vec2) -> bool {
+        match self {
+            Layer::Ocean(_) => false,
+            Layer::Beach(layer) => layer.is_walkable(position, size),
+            Layer::Grass(layer) => layer.is_walkable(position, size),
+        }
+    }
+
+    pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
+        match self {
+            Layer::Ocean(layer) => layer.get_tile(x, y),
+            Layer::Beach(layer) => layer.get_tile(x, y),
+            Layer::Grass(layer) => layer.get_tile(x, y),
+        }
+    }
 }
 
 pub trait TerrainCenterTileSet {

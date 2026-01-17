@@ -1,6 +1,7 @@
 pub use world_map::WorldMap;
+
+mod beach;
 mod grass;
-mod island;
 mod layer;
 mod ocean;
 mod tileset;

@@ -1,21 +1,21 @@
 use macroquad::math::Vec2;
 
-use crate::world_map::{layer::Layer, tileset::TileIndex};
+use crate::world_map::tileset::TileIndex;
 
-pub struct Ocean {
+pub struct OceanLayer {
     tiles: Vec<Vec<Option<TileIndex>>>,
 }
 
-impl Layer for Ocean {
-    fn is_collision(&self, _position: Vec2, _size: Vec2) -> bool {
+impl OceanLayer {
+    pub fn is_walkable(&self, _position: Vec2, _size: Vec2) -> bool {
         false
     }
 
-    fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
+    pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }
 
-    fn new(_seed: &mut u64, width: usize, height: usize) -> Self
+    pub fn new(_seed: &mut u64, width: usize, height: usize) -> Self
     where
         Self: Sized,
     {

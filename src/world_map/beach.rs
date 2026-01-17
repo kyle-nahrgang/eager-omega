@@ -1,20 +1,19 @@
-use macroquad::{prelude::*, rand::srand};
+use macroquad::prelude::*;
 
 use crate::world_map::{
     layer::{
-        Layer, TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet,
-        TerrainLayerGenerator,
+        TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet, TerrainLayerGenerator,
     },
     tileset::TileIndex,
 };
 
-pub struct Island {
+pub struct BeachLayer {
     pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
 }
 
-impl Layer for Island {
-    fn is_collision(&self, position: Vec2, _size: Vec2) -> bool {
+impl BeachLayer {
+    pub fn is_walkable(&self, position: Vec2, _size: Vec2) -> bool {
         let min_x = (position.x / 16.0).floor() as i32;
         let min_y = (position.y / 16.0).floor() as i32;
 
@@ -29,11 +28,11 @@ impl Layer for Island {
         false
     }
 
-    fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
+    pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }
 
-    fn new(seed: &mut u64, width: usize, height: usize) -> Self
+    pub fn new(seed: &mut u64, width: usize, height: usize) -> Self
     where
         Self: Sized,
     {
@@ -44,7 +43,7 @@ impl Layer for Island {
     }
 }
 
-impl TerrainEdgeTileSet for Island {
+impl TerrainEdgeTileSet for BeachLayer {
     fn top_edge() -> TileIndex {
         TileIndex::SandEdgeTop
     }
@@ -71,7 +70,7 @@ impl TerrainEdgeTileSet for Island {
     }
 }
 
-impl TerrainCornerTileSet for Island {
+impl TerrainCornerTileSet for BeachLayer {
     fn top_right_corner() -> TileIndex {
         TileIndex::SandCornerTopRight
     }
@@ -86,7 +85,7 @@ impl TerrainCornerTileSet for Island {
     }
 }
 
-impl TerrainCenterTileSet for Island {
+impl TerrainCenterTileSet for BeachLayer {
     fn center_tiles() -> &'static [TileIndex] {
         &[
             TileIndex::Sand,
@@ -97,4 +96,4 @@ impl TerrainCenterTileSet for Island {
     }
 }
 
-impl TerrainLayerGenerator for Island {}
+impl TerrainLayerGenerator for BeachLayer {}

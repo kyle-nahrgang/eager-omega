@@ -1,6 +1,6 @@
 use macroquad::{prelude::*, rand::srand};
 
-use crate::world_map::{grass::Grass, island::Island, layer::Layer, ocean::Ocean};
+use crate::world_map::{beach::BeachLayer, grass::GrassLayer, layer::Layer, ocean::OceanLayer};
 
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 64;
@@ -11,7 +11,7 @@ pub struct WorldMap {
     texture: Texture2D,
     view_width: f32,
     view_height: f32,
-    pub layers: Vec<Box<dyn Layer>>,
+    pub layers: Vec<Layer>,
     pub camera: Camera2D,
     pub start_location: Vec2,
 }
@@ -33,7 +33,7 @@ impl WorldMap {
         let camera =
             Camera2D::from_display_rect(Rect::new(0.0, view_height, view_width, -(view_height)));
 
-        let island = Island::new(&mut seed, MAP_WIDTH as usize, MAP_HEIGHT as usize);
+        let island = BeachLayer::new(&mut seed, MAP_WIDTH as usize, MAP_HEIGHT as usize);
 
         let start_location = island.center.clone();
 
@@ -43,13 +43,13 @@ impl WorldMap {
             view_height,
             view_width,
             layers: vec![
-                Box::new(Ocean::new(
+                Layer::Ocean(OceanLayer::new(
                     &mut seed,
                     MAP_WIDTH as usize,
                     MAP_HEIGHT as usize,
                 )),
-                Box::new(island),
-                Box::new(Grass::new(
+                Layer::Beach(island),
+                Layer::Grass(GrassLayer::new(
                     &mut seed,
                     MAP_WIDTH as usize,
                     MAP_HEIGHT as usize,
@@ -59,9 +59,10 @@ impl WorldMap {
         }
     }
 
-    pub fn is_collision(&self, position: Vec2, size: Vec2) -> bool {
-        for layer in &self.layers[1..] {
-            if layer.is_collision(position, size) {
+    pub fn is_walkable(&self, position: Vec2, size: Vec2) -> bool {
+
+        for layer in self.layers.iter().rev() {
+            if layer.is_walkable(position, size) {
                 return true;
             }
         }
