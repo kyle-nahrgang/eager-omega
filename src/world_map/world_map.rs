@@ -45,12 +45,28 @@ impl WorldMap {
         }
     }
 
-    pub fn is_collision(&self, position: Vec2) -> bool {
-        let tile_x = (position.x / TILE_SIZE).floor() as i32;
-        let tile_y = (position.y / TILE_SIZE).floor() as i32;
+    pub fn is_collision(&self, position: Vec2, size: Vec2) -> bool {
+        let min_x = (position.x / TILE_SIZE).floor() as i32;
+        let min_y = (position.y / TILE_SIZE).floor() as i32;
 
-        if tile_x < -1 || tile_x >= (MAP_WIDTH - 2) || tile_y < -1 || tile_y >= (MAP_HEIGHT - 2) {
-            return true; // Out of bounds is considered a collision
+        let max_x = ((position.x + size.x) / TILE_SIZE).floor() as i32;
+        let max_y = ((position.y + size.y) / TILE_SIZE).floor() as i32;
+
+        for layer in &self.layers[1..] {
+            let height = layer.tiles.len() as i32;
+            let width = layer.tiles[0].len() as i32;
+
+            for y in min_y..=max_y {
+                for x in min_x..=max_x {
+                    if x < 0 || y < 0 || x >= width || y >= height {
+                        return true;
+                    }
+
+                    if layer.tiles[y as usize][x as usize] == 0 {
+                        return true;
+                    }
+                }
+            }
         }
 
         false

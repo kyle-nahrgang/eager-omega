@@ -166,7 +166,7 @@ impl Human {
         };
 
         let new_position = self.position + new_velocity * dt;
-        let collision = world_map.is_collision(new_position);
+        let collision = world_map.is_collision(new_position, vec2(16.0, 16.0));
 
         if direction.length() > 0.0 && !collision {
             self.velocity = new_velocity;
