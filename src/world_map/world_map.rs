@@ -25,8 +25,7 @@ impl WorldMap {
             .unwrap();
         texture.set_filter(FilterMode::Nearest);
 
-        let mut seed: u64 = 1;
-        srand(seed);
+        srand(1);
 
         let view_height = MAX_HEIGHT_TILES * TILE_SIZE; // max 5 tiles high
         let aspect_ratio = screen_width() / screen_height();
@@ -35,9 +34,16 @@ impl WorldMap {
         let camera =
             Camera2D::from_display_rect(Rect::new(0.0, view_height, view_width, -(view_height)));
 
-        let island = BeachLayer::new(&mut seed, MAP_WIDTH as usize, MAP_HEIGHT as usize);
+        let island = BeachLayer::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
+        let start_location = island.center;
 
-        let start_location = island.center.clone();
+        let island = Layer::Beach(island);
+
+        let grass1 = Layer::Grass(GrassLayer::new(
+            MAP_WIDTH as usize,
+            MAP_HEIGHT as usize,
+            Some(&island),
+        ));
 
         Self {
             texture,
@@ -45,17 +51,9 @@ impl WorldMap {
             view_height,
             view_width,
             layers: vec![
-                Layer::Ocean(OceanLayer::new(
-                    &mut seed,
-                    MAP_WIDTH as usize,
-                    MAP_HEIGHT as usize,
-                )),
-                Layer::Beach(island),
-                Layer::Grass(GrassLayer::new(
-                    &mut seed,
-                    MAP_WIDTH as usize,
-                    MAP_HEIGHT as usize,
-                )),
+                Layer::Ocean(OceanLayer::new(MAP_WIDTH as usize, MAP_HEIGHT as usize)),
+                island,
+                grass1,
             ],
             start_location,
         }

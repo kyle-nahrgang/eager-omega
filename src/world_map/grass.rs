@@ -2,7 +2,8 @@ use macroquad::prelude::*;
 
 use crate::world_map::{
     layer::{
-        TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet, TerrainLayerGenerator,
+        Layer, TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet,
+        TerrainLayerGenerator,
     },
     tileset::TileIndex,
 };
@@ -11,6 +12,7 @@ use crate::world_map::{
 pub struct GrassLayer {
     pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
+    altitude: usize,
 }
 
 impl GrassLayer {
@@ -18,14 +20,22 @@ impl GrassLayer {
         self.tiles[y][x]
     }
 
-    pub fn new(seed: &mut u64, width: usize, height: usize) -> Self
+    pub fn new(width: usize, height: usize, prev_layer: Option<&Layer>) -> Self
     where
         Self: Sized,
     {
-        *seed = *seed + 1;
+        let altitude = if let Some(Layer::Grass(grass_layer)) = prev_layer {
+            grass_layer.altitude + 1
+        } else {
+            0
+        };
 
         let (center, tiles) = Self::generate_layer(width, height);
-        Self { tiles, center }
+        Self {
+            tiles,
+            center,
+            altitude,
+        }
     }
 }
 

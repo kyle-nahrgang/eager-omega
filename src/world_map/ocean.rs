@@ -10,7 +10,7 @@ impl OceanLayer {
         self.tiles[y][x]
     }
 
-    pub fn new(_seed: &mut u64, width: usize, height: usize) -> Self
+    pub fn new(width: usize, height: usize) -> Self
     where
         Self: Sized,
     {

@@ -58,6 +58,7 @@ pub trait TerrainLayerGenerator:
     TerrainCenterTileSet + TerrainCornerTileSet + TerrainEdgeTileSet
 {
     fn generate_layer(width: usize, height: usize) -> (Vec2, Vec<Vec<Option<TileIndex>>>) {
+        // todo: select starting tile based on previous layer
         let mut tiles = vec![vec![None; width]; height];
 
         let start_x = rand::RandomRange::gen_range(0, width as i32 / 2) as usize;

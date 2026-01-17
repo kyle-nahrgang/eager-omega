@@ -18,12 +18,10 @@ impl BeachLayer {
         self.tiles[y][x]
     }
 
-    pub fn new(seed: &mut u64, width: usize, height: usize) -> Self
+    pub fn new(width: usize, height: usize) -> Self
     where
         Self: Sized,
     {
-        *seed = *seed + 1;
-
         let (center, tiles) = Self::generate_layer(width, height);
         Self { tiles, center }
     }
