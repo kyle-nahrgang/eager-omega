@@ -2,13 +2,14 @@ use ::rand::Rng;
 use macroquad::prelude::*;
 
 use crate::world_map::{
+    island::Island,
     layer::{self, Layer},
     ocean::Ocean,
 };
 
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 32;
-const MAP_HEIGHT: i32 = 18;
+const MAP_HEIGHT: i32 = 32;
 const MAX_HEIGHT_TILES: f32 = 8.0;
 
 pub struct WorldMap {
@@ -45,7 +46,10 @@ impl WorldMap {
             camera,
             view_height,
             view_width,
-            layers: vec![Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer],
+            layers: vec![
+                Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer,
+                Island::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer,
+            ],
         }
     }
 
@@ -80,13 +84,19 @@ impl WorldMap {
 
                 for layer in &self.layers {
                     let tile = layer.tiles[y][x] as u16;
+                    let rect = self.tile_uv(tile);
+
+                    if rect.is_none() {
+                        continue; // Empty tile
+                    }
+
                     draw_texture_ex(
                         &self.texture,
                         x as f32 * TILE_SIZE,
                         y as f32 * TILE_SIZE,
                         WHITE,
                         DrawTextureParams {
-                            source: Some(self.tile_uv(tile)),
+                            source: rect,
                             dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
                             ..Default::default()
                         },
@@ -96,13 +106,17 @@ impl WorldMap {
         }
     }
 
-    fn tile_uv(&self, tile: u16) -> Rect {
+    fn tile_uv(&self, tile: u16) -> Option<Rect> {
+        if tile == 0 {
+            return None; // Empty tile
+        }
+
         // Tileset has 64 columns
         let tiles_per_row = 64;
         let tile_index = tile - 1; // Tiled counts tiles from 1
         let x = (tile_index % tiles_per_row) as f32 * TILE_SIZE;
         let y = (tile_index / tiles_per_row) as f32 * TILE_SIZE;
 
-        Rect::new(x, y, TILE_SIZE, TILE_SIZE)
+        Some(Rect::new(x, y, TILE_SIZE, TILE_SIZE))
     }
 }
