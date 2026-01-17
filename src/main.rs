@@ -1,3 +1,4 @@
+use ::rand::Rng;
 use macroquad::prelude::*;
 use macroquad_platformer::*;
 
@@ -18,7 +19,10 @@ async fn main() {
     tileset.set_filter(FilterMode::Nearest);
 
     // Create a map filled with the same tile (index 66)
-    let mut tiles = vec![66u16; (MAP_WIDTH * MAP_HEIGHT) as usize];
+    let mut rng = ::rand::thread_rng();
+    let mut tiles: Vec<u16> = (0..(MAP_WIDTH * MAP_HEIGHT))
+        .map(|_| rng.gen_range(1..=5))
+        .collect();
 
     // Create the collision layer (all solid for demo)
     let colliders = vec![Tile::Solid; (MAP_WIDTH * MAP_HEIGHT) as usize];
@@ -45,7 +49,7 @@ async fn main() {
         for y in 0..MAP_HEIGHT {
             for x in 0..MAP_WIDTH {
                 let idx = (y * MAP_WIDTH + x) as usize;
-                let tile = tiles[idx];
+                let tile = tiles[idx] + 129;
 
                 draw_texture_ex(
                     &tileset,
