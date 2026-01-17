@@ -1,6 +1,11 @@
 use ::rand::Rng;
 use macroquad::prelude::*;
 
+use crate::world_map::{
+    layer::{self, Layer},
+    ocean::Ocean,
+};
+
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 32;
 const MAP_HEIGHT: i32 = 18;
@@ -11,6 +16,7 @@ pub struct WorldMap {
     tiles: Vec<u16>,
     view_width: f32,
     view_height: f32,
+    layers: Vec<Layer>,
     pub camera: Camera2D,
 }
 
@@ -39,6 +45,7 @@ impl WorldMap {
             camera,
             view_height,
             view_width,
+            layers: vec![Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer],
         }
     }
 
@@ -70,19 +77,21 @@ impl WorldMap {
         for y in start_y..end_y {
             for x in start_x..end_x {
                 let idx = (y * MAP_WIDTH as usize + x) as usize;
-                let tile = self.tiles[idx] + 129;
 
-                draw_texture_ex(
-                    &self.texture,
-                    x as f32 * TILE_SIZE,
-                    y as f32 * TILE_SIZE,
-                    WHITE,
-                    DrawTextureParams {
-                        source: Some(self.tile_uv(tile)),
-                        dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
-                        ..Default::default()
-                    },
-                );
+                for layer in &self.layers {
+                    let tile = layer.tiles[y][x] as u16;
+                    draw_texture_ex(
+                        &self.texture,
+                        x as f32 * TILE_SIZE,
+                        y as f32 * TILE_SIZE,
+                        WHITE,
+                        DrawTextureParams {
+                            source: Some(self.tile_uv(tile)),
+                            dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
+                            ..Default::default()
+                        },
+                    );
+                }
             }
         }
     }
