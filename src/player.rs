@@ -93,7 +93,7 @@ impl Action {
             Action::JUMP => "JUMP",
             Action::MINING => "MINING",
             Action::REELING => "REELING",
-            Action::ROLL => "ROLL",
+            Action::ROLL => "roll",
             Action::RUN => "run",
             Action::SWIMMING => "SWIMMING",
             Action::WAITING => "WAITING",
@@ -106,9 +106,10 @@ impl Action {
         match self {
             Action::IDLE => 9,
             Action::WALKING => 8,
-            Action::RUN => 9,
+            Action::RUN => 8,
             Action::JUMP => 9,
-            Action::ATTACK => 9,
+            Action::ATTACK => 10,
+            Action::ROLL => 10,
             _ => 1, // Default to 1 frame for unimplemented actions
         }
     }
@@ -133,6 +134,7 @@ pub struct Player {
     frame_timer: f32,
     current_frame: u16,
     current_action: Action,
+    flip_x: bool,
 }
 
 impl Player {
@@ -161,6 +163,7 @@ impl Player {
             frame_timer: 0.0,
             current_frame: 0,
             current_action: Action::IDLE,
+            flip_x: false,
         }
     }
 
@@ -170,9 +173,11 @@ impl Player {
 
         if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) {
             direction.x -= 1.0;
+            self.flip_x = true;
         }
         if is_key_down(KeyCode::D) || is_key_down(KeyCode::Right) {
             direction.x += 1.0;
+            self.flip_x = false;
         }
         if is_key_down(KeyCode::W) || is_key_down(KeyCode::Up) {
             direction.y -= 1.0;
@@ -183,7 +188,7 @@ impl Player {
 
         if direction.length() > 0.0 {
             self.velocity = direction.normalize() * self.speed;
-            self.current_action = Action::WALKING;
+            self.current_action = Action::ROLL;
         } else {
             self.velocity = Vec2::ZERO;
             self.current_action = Action::IDLE;
@@ -217,6 +222,7 @@ impl Player {
             DrawTextureParams {
                 source: Some(self.player_uv(self.current_frame)),
                 dest_size: Some(vec2(48.0, 32.0)),
+                flip_x: self.flip_x,
                 ..Default::default()
             },
         );
@@ -233,6 +239,7 @@ impl Player {
                 DrawTextureParams {
                     source: Some(self.player_uv(self.current_frame)),
                     dest_size: Some(vec2(48.0, 32.0)),
+                    flip_x: self.flip_x,
                     ..Default::default()
                 },
             );
