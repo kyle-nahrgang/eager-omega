@@ -170,7 +170,7 @@ impl Human {
         }
     }
 
-    pub fn update(&mut self, dt: f32) {
+    pub fn update(&mut self, dt: f32, world_map: &crate::world_map::WorldMap) {
         let mut direction = vec2(0.0, 0.0);
         let prev_action = self.current_action;
 
@@ -189,8 +189,17 @@ impl Human {
             direction.y += 1.0;
         }
 
-        if direction.length() > 0.0 {
-            self.velocity = direction.normalize() * self.speed;
+        let new_velocity = if direction.length() > 0.0 {
+            direction.normalize() * self.speed
+        } else {
+            Vec2::ZERO
+        };
+
+        let new_position = self.position + new_velocity * dt;
+        let collision = world_map.is_collision(new_position);
+
+        if direction.length() > 0.0 && !collision {
+            self.velocity = new_velocity;
             self.current_action = MOVE_ACTION;
         } else {
             self.velocity = Vec2::ZERO;

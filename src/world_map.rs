@@ -25,6 +25,17 @@ impl WorldMap {
         Self { texture, tiles }
     }
 
+    pub fn is_collision(&self, position: Vec2) -> bool {
+        let tile_x = (position.x / TILE_SIZE).floor() as i32;
+        let tile_y = (position.y / TILE_SIZE).floor() as i32;
+
+        if tile_x < -1 || tile_x >= (MAP_WIDTH - 2) || tile_y < -1 || tile_y >= (MAP_HEIGHT - 2) {
+            return true; // Out of bounds is considered a collision
+        }
+
+        false
+    }
+
     pub fn draw(&self) {
         for y in 0..MAP_HEIGHT {
             for x in 0..MAP_WIDTH {

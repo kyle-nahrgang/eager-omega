@@ -28,7 +28,7 @@ async fn main() {
     loop {
         let dt = get_frame_time();
 
-        player.update(dt);
+        player.update(dt, &world_map);
 
         clear_background(BLACK);
 
