@@ -11,7 +11,7 @@ pub struct WorldMap {
     texture: Texture2D,
     view_width: f32,
     view_height: f32,
-    layers: Vec<Layer>,
+    layers: Vec<Box<dyn Layer>>,
     pub camera: Camera2D,
     pub start_location: Vec2,
 }
@@ -32,40 +32,25 @@ impl WorldMap {
 
         let island = Island::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
 
+        let start_location = island.center.clone();
+
         Self {
             texture,
             camera,
             view_height,
             view_width,
             layers: vec![
-                Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer,
-                island.layer,
+                Box::new(Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize)),
+                Box::new(island),
             ],
-            start_location: island.center,
+            start_location,
         }
     }
 
     pub fn is_collision(&self, position: Vec2, size: Vec2) -> bool {
-        let min_x = (position.x / TILE_SIZE).floor() as i32;
-        let min_y = (position.y / TILE_SIZE).floor() as i32;
-
-        let max_x = ((position.x + size.x) / TILE_SIZE).floor() as i32;
-        let max_y = ((position.y + size.y) / TILE_SIZE).floor() as i32;
-
         for layer in &self.layers[1..] {
-            let height = layer.tiles.len() as i32;
-            let width = layer.tiles[0].len() as i32;
-
-            for y in min_y..=max_y {
-                for x in min_x..=max_x {
-                    if x < 0 || y < 0 || x >= width || y >= height {
-                        return true;
-                    }
-
-                    if layer.tiles[y as usize][x as usize] == 0 {
-                        return true;
-                    }
-                }
+            if layer.is_collision(position, size) {
+                return true;
             }
         }
 
@@ -89,34 +74,31 @@ impl WorldMap {
         for y in start_y..end_y {
             for x in start_x..end_x {
                 for layer in &self.layers {
-                    let tile = layer.tiles[y][x] as u16;
-                    let rect = self.tile_uv(tile);
+                    if let Some(tile) = layer.get_tile(x, y) {
+                        let rect = self.tile_uv(tile);
 
-                    if rect.is_none() {
-                        continue; // Empty tile
+                        if rect.is_none() {
+                            continue; // Empty tile
+                        }
+
+                        draw_texture_ex(
+                            &self.texture,
+                            x as f32 * TILE_SIZE,
+                            y as f32 * TILE_SIZE,
+                            WHITE,
+                            DrawTextureParams {
+                                source: rect,
+                                dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
+                                ..Default::default()
+                            },
+                        );
                     }
-
-                    draw_texture_ex(
-                        &self.texture,
-                        x as f32 * TILE_SIZE,
-                        y as f32 * TILE_SIZE,
-                        WHITE,
-                        DrawTextureParams {
-                            source: rect,
-                            dest_size: Some(vec2(TILE_SIZE, TILE_SIZE)),
-                            ..Default::default()
-                        },
-                    );
                 }
             }
         }
     }
 
-    fn tile_uv(&self, tile: u16) -> Option<Rect> {
-        if tile == 0 {
-            return None; // Empty tile
-        }
-
+    fn tile_uv(&self, tile: u32) -> Option<Rect> {
         // Tileset has 64 columns
         let tiles_per_row = 64;
         let tile_index = tile - 1; // Tiled counts tiles from 1

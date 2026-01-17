@@ -1,7 +1,19 @@
+use macroquad::math::Vec2;
+
 use crate::world_map::{layer::Layer, tileset::OceanTile};
 
 pub struct Ocean {
-    pub layer: Layer,
+    tiles: Vec<Vec<Option<u32>>>,
+}
+
+impl Layer for Ocean {
+    fn is_collision(&self, _position: Vec2, _size: Vec2) -> bool {
+        false
+    }
+
+    fn get_tile(&self, x: usize, y: usize) -> Option<u32> {
+        self.tiles[y][x]
+    }
 }
 
 impl Ocean {
@@ -33,15 +45,13 @@ impl Ocean {
             ],
         ];
 
-        let mut tiles = vec![vec![0; width]; height];
+        let mut tiles = vec![vec![None; width]; height];
         for y in 0..height {
             for x in 0..width {
-                tiles[y][x] = tiles_map[y % 4][x % 4] as u32;
+                tiles[y][x] = Some(tiles_map[y % 4][x % 4] as u32);
             }
         }
 
-        Self {
-            layer: Layer::new(width, height, tiles),
-        }
+        Self { tiles }
     }
 }

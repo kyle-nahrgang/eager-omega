@@ -3,13 +3,42 @@ use macroquad::{prelude::*, rand::ChooseRandom};
 use crate::world_map::{layer::Layer, tileset::IslandTile};
 
 pub struct Island {
-    pub layer: Layer,
+    pub tiles: Vec<Vec<Option<u32>>>,
     pub center: Vec2,
+}
+
+impl Layer for Island {
+    fn is_collision(&self, position: Vec2, size: Vec2) -> bool {
+        let min_x = (position.x / 16.0).floor() as i32;
+        let min_y = (position.y / 16.0).floor() as i32;
+
+        let max_x = ((position.x + size.x) / 16.0).floor() as i32;
+        let max_y = ((position.y + size.y) / 16.0).floor() as i32;
+
+        for y in min_y..=max_y {
+            for x in min_x..=max_x {
+                if y < 0 || y >= self.tiles.len() as i32 || x < 0 || x >= self.tiles[0].len() as i32
+                {
+                    continue;
+                }
+
+                if self.tiles[y as usize][x as usize].is_none() {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+
+    fn get_tile(&self, x: usize, y: usize) -> Option<u32> {
+        self.tiles[y][x]
+    }
 }
 
 impl Island {
     pub fn new(width: usize, height: usize) -> Self {
-        let mut tiles = vec![vec![0; width]; height];
+        let mut tiles = vec![vec![None; width]; height];
 
         rand::srand(1);
 
@@ -31,7 +60,7 @@ impl Island {
         );
 
         land_tiles.push((center_x, center_y));
-        tiles[center_y][center_x] = IslandTile::Sand as u32;
+        tiles[center_y][center_x] = Some(IslandTile::Sand as u32);
 
         // Number of steps proportional to bounding box size
         let num_steps = rand::RandomRange::gen_range(
@@ -45,6 +74,7 @@ impl Island {
             IslandTile::SandSpotted2,
             IslandTile::SandSpotted3,
         ];
+
         let rx = island_width as f32 * 0.5;
         let ry = island_height as f32 * 0.5;
         let cx = center_x as i32;
@@ -59,7 +89,7 @@ impl Island {
                     _ => (x, (y + 1).min(height - 1)),
                 };
 
-                if tiles[ny][nx] != 0 {
+                if tiles[ny][nx].is_some() {
                     continue;
                 }
 
@@ -67,18 +97,15 @@ impl Island {
                     continue;
                 }
 
-                tiles[ny][nx] = *center_options.choose().unwrap() as u32;
+                tiles[ny][nx] = Some(*center_options.choose().unwrap() as u32);
                 land_tiles.push((nx, ny));
             }
         }
 
         Self::fill_single_tile_gaps(&mut tiles);
-        Island::add_island_edges(&mut tiles);
+        Self::add_island_edges(&mut tiles);
 
-        Self {
-            layer: Layer::new(width, height, tiles),
-            center,
-        }
+        Self { tiles, center }
     }
 
     fn inside_radius(cx: i32, cy: i32, x: i32, y: i32, rx: f32, ry: f32) -> bool {
@@ -87,7 +114,7 @@ impl Island {
         dx * dx + dy * dy <= 2.0
     }
 
-    fn fill_single_tile_gaps(grid: &mut Vec<Vec<u32>>) {
+    fn fill_single_tile_gaps(grid: &mut Vec<Vec<Option<u32>>>) {
         let height = grid.len();
         let width = grid[0].len();
 
@@ -99,14 +126,14 @@ impl Island {
             for y in 0..height {
                 for x in 0..width {
                     // Only consider blank tiles
-                    if original[y][x] != 0 {
+                    if original[y][x].is_some() {
                         continue;
                     }
 
-                    let top: bool = y > 0 && original[y - 1][x] != 0;
-                    let bottom: bool = y + 1 < height && original[y + 1][x] != 0;
-                    let left: bool = x > 0 && original[y][x - 1] != 0;
-                    let right: bool = x + 1 < width && original[y][x + 1] != 0;
+                    let top: bool = y > 0 && original[y - 1][x].is_some();
+                    let bottom: bool = y + 1 < height && original[y + 1][x].is_some();
+                    let left: bool = x > 0 && original[y][x - 1].is_some();
+                    let right: bool = x + 1 < width && original[y][x + 1].is_some();
 
                     let tile = match (top, bottom, left, right) {
                         (true, true, true, true)
@@ -120,7 +147,7 @@ impl Island {
                         _ => continue,
                     };
 
-                    grid[y][x] = tile as u32;
+                    grid[y][x] = Some(tile as u32);
                 }
             }
 
@@ -131,7 +158,7 @@ impl Island {
     }
 
     // Determine tile type based on neighbors
-    fn add_island_edges(grid: &mut Vec<Vec<u32>>) {
+    fn add_island_edges(grid: &mut Vec<Vec<Option<u32>>>) {
         let height = grid.len();
         let width = grid[0].len();
 
@@ -141,14 +168,14 @@ impl Island {
         for y in 0..height {
             for x in 0..width {
                 // Only consider blank tiles
-                if original[y][x] != 0 {
+                if original[y][x].is_some() {
                     continue;
                 }
 
-                let top: bool = y > 0 && original[y - 1][x] != 0;
-                let bottom: bool = y + 1 < height && original[y + 1][x] != 0;
-                let left: bool = x > 0 && original[y][x - 1] != 0;
-                let right: bool = x + 1 < width && original[y][x + 1] != 0;
+                let top: bool = y > 0 && original[y - 1][x].is_some();
+                let bottom: bool = y + 1 < height && original[y + 1][x].is_some();
+                let left: bool = x > 0 && original[y][x - 1].is_some();
+                let right: bool = x + 1 < width && original[y][x + 1].is_some();
 
                 let tile = match (top, bottom, left, right) {
                     // Corners
@@ -178,7 +205,7 @@ impl Island {
                     }
                 };
 
-                grid[y][x] = tile as u32;
+                grid[y][x] = Some(tile as u32);
             }
         }
     }
