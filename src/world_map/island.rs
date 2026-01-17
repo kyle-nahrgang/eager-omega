@@ -14,11 +14,10 @@ impl Island {
         let mut tiles = vec![vec![0; width]; height];
         let mut rng = rand::thread_rng();
 
-        // Max island size (1/6th of grid in tiles)
-        let min_island_width = (width / 3).max(1);
-        let min_island_height = (height / 3).max(1);
-        let max_island_width = (width / 2).max(1);
-        let max_island_height = (height / 2).max(1);
+        let min_island_width = (width / 2).max(1);
+        let min_island_height = (height / 2).max(1);
+        let max_island_width = (width).max(1);
+        let max_island_height = (height).max(1);
 
         // Random island bounding box (in tile coordinates)
         let island_width = rng.gen_range(min_island_width..=max_island_width);
@@ -63,7 +62,6 @@ impl Island {
                     continue;
                 }
 
-                // NEW: roundness constraint
                 if !Island::inside_radius(cx, cy, nx as i32, ny as i32, rx, ry) {
                     continue;
                 }
@@ -73,6 +71,7 @@ impl Island {
             }
         }
 
+        Self::fill_single_tile_gaps(&mut tiles);
         Island::add_island_edges(&mut tiles);
 
         Self {
@@ -83,7 +82,50 @@ impl Island {
     fn inside_radius(cx: i32, cy: i32, x: i32, y: i32, rx: f32, ry: f32) -> bool {
         let dx = (x - cx) as f32 / rx;
         let dy = (y - cy) as f32 / ry;
-        dx * dx + dy * dy <= 1.0
+        dx * dx + dy * dy <= 2.0
+    }
+
+    fn fill_single_tile_gaps(grid: &mut Vec<Vec<u32>>) {
+        let height = grid.len();
+        let width = grid[0].len();
+
+        loop {
+            // Work on a copy so we don't interfere while iterating
+            let original = grid.clone();
+            let mut found_gap = false;
+
+            for y in 0..height {
+                for x in 0..width {
+                    // Only consider blank tiles
+                    if original[y][x] != 0 {
+                        continue;
+                    }
+
+                    let top: bool = y > 0 && original[y - 1][x] != 0;
+                    let bottom: bool = y + 1 < height && original[y + 1][x] != 0;
+                    let left: bool = x > 0 && original[y][x - 1] != 0;
+                    let right: bool = x + 1 < width && original[y][x + 1] != 0;
+
+                    let tile = match (top, bottom, left, right) {
+                        (true, true, true, true)
+                        | (true, true, true, false)
+                        | (true, true, false, true)
+                        | (true, false, true, true)
+                        | (false, true, true, true) => {
+                            found_gap = true;
+                            IslandTile::Sand
+                        }
+                        _ => continue,
+                    };
+
+                    grid[y][x] = tile as u32;
+                }
+            }
+
+            if found_gap {
+                break;
+            }
+        }
     }
 
     // Determine tile type based on neighbors
@@ -101,22 +143,37 @@ impl Island {
                     continue;
                 }
 
-                let top = y > 0 && original[y - 1][x] != 0;
-                let bottom = y + 1 < height && original[y + 1][x] != 0;
-                let left = x > 0 && original[y][x - 1] != 0;
-                let right = x + 1 < width && original[y][x + 1] != 0;
+                let top: bool = y > 0 && original[y - 1][x] != 0;
+                let bottom: bool = y + 1 < height && original[y + 1][x] != 0;
+                let left: bool = x > 0 && original[y][x - 1] != 0;
+                let right: bool = x + 1 < width && original[y][x + 1] != 0;
 
                 let tile = match (top, bottom, left, right) {
                     // Corners
-                    (false, true, true, true) => IslandTile::SandEdgeTop,
-                    (true, false, true, true) => IslandTile::SandEdgeBottom,
-                    (true, true, false, true) => IslandTile::SandEdgeLeft,
-                    (true, true, true, false) => IslandTile::SandEdgeRight,
+                    (false, true, true, true) | (false, true, false, false) => {
+                        IslandTile::SandEdgeTop
+                    }
+                    (true, false, true, true) | (true, false, false, false) => {
+                        IslandTile::SandEdgeBottom
+                    }
+                    (true, true, false, true) | (false, false, false, true) => {
+                        IslandTile::SandEdgeLeft
+                    }
+                    (true, true, true, false) | (false, false, true, false) => {
+                        IslandTile::SandEdgeRight
+                    }
                     (false, true, false, true) => IslandTile::SandCornerTopLeft,
                     (false, true, true, false) => IslandTile::SandCornerTopRight,
                     (true, false, false, true) => IslandTile::SandCornerBottomLeft,
                     (true, false, true, false) => IslandTile::SandCornerBottomRight,
-                    _ => continue,
+                    (false, false, false, false) => continue,
+                    _ => {
+                        println!(
+                            "Unmatched edge case at ({}, {}): top={}, bottom={}, left={}, right={}",
+                            x, y, top, bottom, left, right
+                        );
+                        continue;
+                    }
                 };
 
                 grid[y][x] = tile as u32;

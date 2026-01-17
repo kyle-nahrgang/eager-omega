@@ -1,20 +1,14 @@
-use ::rand::Rng;
 use macroquad::prelude::*;
 
-use crate::world_map::{
-    island::Island,
-    layer::{self, Layer},
-    ocean::Ocean,
-};
+use crate::world_map::{island::Island, layer::Layer, ocean::Ocean};
 
 const TILE_SIZE: f32 = 16.0;
-const MAP_WIDTH: i32 = 32;
-const MAP_HEIGHT: i32 = 32;
+const MAP_WIDTH: i32 = 64;
+const MAP_HEIGHT: i32 = 64;
 const MAX_HEIGHT_TILES: f32 = 8.0;
 
 pub struct WorldMap {
     texture: Texture2D,
-    tiles: Vec<u16>,
     view_width: f32,
     view_height: f32,
     layers: Vec<Layer>,
@@ -28,11 +22,6 @@ impl WorldMap {
             .unwrap();
         texture.set_filter(FilterMode::Nearest);
 
-        let mut rng = ::rand::thread_rng();
-        let tiles: Vec<u16> = (0..(MAP_WIDTH * MAP_HEIGHT))
-            .map(|_| rng.gen_range(1..=5))
-            .collect();
-
         let view_height = MAX_HEIGHT_TILES * TILE_SIZE; // max 5 tiles high
         let aspect_ratio = screen_width() / screen_height();
         let view_width = view_height * aspect_ratio;
@@ -42,7 +31,6 @@ impl WorldMap {
 
         Self {
             texture,
-            tiles,
             camera,
             view_height,
             view_width,
@@ -80,8 +68,6 @@ impl WorldMap {
 
         for y in start_y..end_y {
             for x in start_x..end_x {
-                let idx = (y * MAP_WIDTH as usize + x) as usize;
-
                 for layer in &self.layers {
                     let tile = layer.tiles[y][x] as u16;
                     let rect = self.tile_uv(tile);
@@ -118,5 +104,9 @@ impl WorldMap {
         let y = (tile_index / tiles_per_row) as f32 * TILE_SIZE;
 
         Some(Rect::new(x, y, TILE_SIZE, TILE_SIZE))
+    }
+
+    fn tile_to_world(x: usize, y: usize, tile_size: f32) -> (f32, f32) {
+        (x as f32 * tile_size, y as f32 * tile_size)
     }
 }
