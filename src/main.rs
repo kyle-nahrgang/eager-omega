@@ -1,6 +1,8 @@
 use ::rand::Rng;
 use macroquad::prelude::*;
 
+use crate::player::{HairStyle, Player};
+
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 32;
 const MAP_HEIGHT: i32 = 18;
@@ -10,6 +12,8 @@ const FRAME_WIDTH: f32 = 16.0;
 const FRAME_HEIGHT: f32 = 16.0;
 const FRAME_COUNT: u16 = 9;
 const FRAME_TIME: f32 = 0.15;
+
+pub mod player;
 
 #[macroquad::main("Simple Tilemap")]
 async fn main() {
@@ -32,9 +36,7 @@ async fn main() {
         .collect();
 
     // Player state
-    let mut player_pos = vec2(100.0, 100.0);
-    let mut current_frame: u16 = 0;
-    let mut frame_timer = 0.0;
+    let mut player = Player::new(vec2(100.0, 100.0), 60.0, HairStyle::Bowl).await;
 
     // Camera
     let mut camera = Camera2D::from_display_rect(Rect::new(
@@ -47,34 +49,12 @@ async fn main() {
     loop {
         let dt = get_frame_time();
 
-        // --- Player movement ---
-        let mut direction = vec2(0.0, 0.0);
-        if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) {
-            direction.x -= 1.0;
-        }
-        if is_key_down(KeyCode::D) || is_key_down(KeyCode::Right) {
-            direction.x += 1.0;
-        }
-        if is_key_down(KeyCode::W) || is_key_down(KeyCode::Up) {
-            direction.y -= 1.0;
-        }
-        if is_key_down(KeyCode::S) || is_key_down(KeyCode::Down) {
-            direction.y += 1.0;
-        }
-
-        if direction.length() > 0.0 {
-            player_pos += direction.normalize() * 60.0 * dt;
-        }
-
-        // --- Animation ---
-        frame_timer += dt;
-        if frame_timer >= FRAME_TIME {
-            frame_timer = 0.0;
-            current_frame = (current_frame + 1) % FRAME_COUNT;
-        }
+        player.update(dt);
 
         clear_background(BLACK);
-        camera.target = player_pos; // center camera on the player
+
+        camera.target = vec2(player.position.x + 24.0, player.position.y + 16.0);
+
         set_camera(&camera);
 
         // --- Draw tilemap ---
@@ -97,18 +77,7 @@ async fn main() {
             }
         }
 
-        // --- Draw player ---
-        draw_texture_ex(
-            &player_texture,
-            player_pos.x,
-            player_pos.y,
-            WHITE,
-            DrawTextureParams {
-                source: Some(player_uv(current_frame)),
-                dest_size: Some(vec2(FRAME_WIDTH, FRAME_HEIGHT)),
-                ..Default::default()
-            },
-        );
+        player.draw();
 
         set_default_camera();
         next_frame().await;
@@ -125,11 +94,4 @@ fn tile_uv(tile: u16) -> Rect {
     let y = (tile_index / tiles_per_row) as f32 * TILE_SIZE;
 
     Rect::new(x, y, TILE_SIZE, TILE_SIZE)
-}
-
-fn player_uv(frame: u16) -> Rect {
-    let frame_width = 96.0;
-    let frame_height = 64.0;
-
-    Rect::new(frame as f32 * frame_width, 0.0, frame_width, frame_height)
 }
