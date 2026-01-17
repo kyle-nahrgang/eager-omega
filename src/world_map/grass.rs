@@ -8,23 +8,15 @@ use crate::world_map::{
     tileset::TileIndex,
 };
 
-pub struct Island {
+pub struct Grass {
     pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
 }
 
-impl Layer for Island {
+impl Layer for Grass {
     fn is_collision(&self, position: Vec2, _size: Vec2) -> bool {
         let min_x = (position.x / 16.0).floor() as i32;
         let min_y = (position.y / 16.0).floor() as i32;
-
-        if min_x >= self.tiles[0].len() as i32 || min_y >= self.tiles.len() as i32 {
-            return true;
-        }
-
-        if self.tiles[min_y as usize][min_x as usize].is_none() {
-            return true;
-        }
 
         false
     }
@@ -44,57 +36,57 @@ impl Layer for Island {
     }
 }
 
-impl TerrainEdgeTileSet for Island {
+impl TerrainEdgeTileSet for Grass {
     fn top_edge() -> TileIndex {
-        TileIndex::SandEdgeTop
+        TileIndex::_GrassDark
     }
     fn top_right_edge() -> TileIndex {
-        TileIndex::SandEdgeTopRight
+        TileIndex::_GrassDark
     }
     fn right_edge() -> TileIndex {
-        TileIndex::SandEdgeRight
+        TileIndex::_GrassDark
     }
     fn bottom_right_edge() -> TileIndex {
-        TileIndex::SandEdgeBottomRight
+        TileIndex::_GrassDark
     }
     fn bottom_edge() -> TileIndex {
-        TileIndex::SandEdgeBottom
+        TileIndex::_GrassDark
     }
     fn bottom_left_edge() -> TileIndex {
-        TileIndex::SandEdgeBottomLeft
+        TileIndex::_GrassDark
     }
     fn left_edge() -> TileIndex {
-        TileIndex::SandEdgeLeft
+        TileIndex::_GrassDark
     }
     fn top_left_edge() -> TileIndex {
-        TileIndex::SandEdgeTopLeft
+        TileIndex::_GrassDark
     }
 }
 
-impl TerrainCornerTileSet for Island {
+impl TerrainCornerTileSet for Grass {
     fn top_right_corner() -> TileIndex {
-        TileIndex::SandCornerTopRight
+        TileIndex::_GrassDark
     }
     fn top_left_corner() -> TileIndex {
-        TileIndex::SandCornerTopLeft
+        TileIndex::_GrassDark
     }
     fn bottom_right_corner() -> TileIndex {
-        TileIndex::SandCornerBottomRight
+        TileIndex::_GrassDark
     }
     fn bottom_left_corner() -> TileIndex {
-        TileIndex::SandCornerBottomLeft
+        TileIndex::_GrassDark
     }
 }
 
-impl TerrainCenterTileSet for Island {
+impl TerrainCenterTileSet for Grass {
     fn center_tiles() -> &'static [TileIndex] {
         &[
-            TileIndex::Sand,
-            TileIndex::SandSpotted1,
-            TileIndex::SandSpotted2,
-            TileIndex::SandSpotted3,
+            TileIndex::_GrassLight,
+            TileIndex::_GrassSpottedLight1,
+            TileIndex::_GrassSpottedLight2,
+            TileIndex::_GrassSpottedLight3,
         ]
     }
 }
 
-impl TerrainLayerGenerator for Island {}
+impl TerrainLayerGenerator for Grass {}

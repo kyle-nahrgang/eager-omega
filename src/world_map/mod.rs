@@ -1,4 +1,5 @@
 pub use world_map::WorldMap;
+mod grass;
 mod island;
 mod layer;
 mod ocean;

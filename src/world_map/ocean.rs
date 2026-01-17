@@ -14,10 +14,11 @@ impl Layer for Ocean {
     fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }
-}
 
-impl Ocean {
-    pub fn new(width: usize, height: usize) -> Self {
+    fn new(_seed: &mut u64, width: usize, height: usize) -> Self
+    where
+        Self: Sized,
+    {
         let tiles_map = [
             [
                 TileIndex::Ocean1,

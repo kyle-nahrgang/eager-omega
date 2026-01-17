@@ -7,6 +7,9 @@ use macroquad::{
 use crate::world_map::tileset::TileIndex;
 
 pub trait Layer {
+    fn new(seed: &mut u64, width: usize, height: usize) -> Self
+    where
+        Self: Sized;
     fn is_collision(&self, position: Vec2, size: Vec2) -> bool;
     fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex>;
 }
@@ -38,10 +41,8 @@ pub trait TerrainLayerGenerator:
     fn generate_layer(width: usize, height: usize) -> (Vec2, Vec<Vec<Option<TileIndex>>>) {
         let mut tiles = vec![vec![None; width]; height];
 
-        rand::srand(1);
-
-        let start_x = rand::RandomRange::gen_range(0, width as i32) as usize;
-        let start_y = rand::RandomRange::gen_range(0, height as i32) as usize;
+        let start_x = rand::RandomRange::gen_range(0, width as i32 / 2) as usize;
+        let start_y = rand::RandomRange::gen_range(0, height as i32 / 2) as usize;
 
         // Random walk to create blob-shaped terrain
         let mut land_tiles = vec![];

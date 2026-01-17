@@ -1,6 +1,6 @@
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand::srand};
 
-use crate::world_map::{island::Island, layer::Layer, ocean::Ocean};
+use crate::world_map::{grass::Grass, island::Island, layer::Layer, ocean::Ocean};
 
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 64;
@@ -23,6 +23,9 @@ impl WorldMap {
             .unwrap();
         texture.set_filter(FilterMode::Nearest);
 
+        let mut seed: u64 = 1;
+        srand(seed);
+
         let view_height = MAX_HEIGHT_TILES * TILE_SIZE; // max 5 tiles high
         let aspect_ratio = screen_width() / screen_height();
         let view_width = view_height * aspect_ratio;
@@ -30,7 +33,7 @@ impl WorldMap {
         let camera =
             Camera2D::from_display_rect(Rect::new(0.0, view_height, view_width, -(view_height)));
 
-        let island = Island::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
+        let island = Island::new(&mut seed, MAP_WIDTH as usize, MAP_HEIGHT as usize);
 
         let start_location = island.center.clone();
 
@@ -40,8 +43,17 @@ impl WorldMap {
             view_height,
             view_width,
             layers: vec![
-                Box::new(Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize)),
+                Box::new(Ocean::new(
+                    &mut seed,
+                    MAP_WIDTH as usize,
+                    MAP_HEIGHT as usize,
+                )),
                 Box::new(island),
+                Box::new(Grass::new(
+                    &mut seed,
+                    MAP_WIDTH as usize,
+                    MAP_HEIGHT as usize,
+                )),
             ],
             start_location,
         }
