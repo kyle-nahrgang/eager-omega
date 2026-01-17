@@ -1,7 +1,7 @@
 use ::rand::Rng;
 use macroquad::prelude::*;
 
-use crate::player::{HairStyle, Player};
+use crate::human::{HairStyle, Human};
 
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 32;
@@ -13,7 +13,7 @@ const FRAME_HEIGHT: f32 = 16.0;
 const FRAME_COUNT: u16 = 9;
 const FRAME_TIME: f32 = 0.15;
 
-pub mod player;
+pub mod human;
 
 #[macroquad::main("Simple Tilemap")]
 async fn main() {
@@ -36,7 +36,7 @@ async fn main() {
         .collect();
 
     // Player state
-    let mut player = Player::new(vec2(100.0, 100.0), 60.0, HairStyle::Bowl).await;
+    let mut player = Human::new(vec2(100.0, 100.0), 60.0, HairStyle::Bowl).await;
 
     // Camera
     let mut camera = Camera2D::from_display_rect(Rect::new(

@@ -125,7 +125,7 @@ impl Action {
     }
 }
 
-pub struct Player {
+pub struct Human {
     pub position: Vec2,
     pub velocity: Vec2,
     pub speed: f32,
@@ -137,7 +137,7 @@ pub struct Player {
     flip_x: bool,
 }
 
-impl Player {
+impl Human {
     pub async fn new(position: Vec2, speed: f32, hair_style: HairStyle) -> Self {
         let mut textures = std::collections::HashMap::new();
         for action in [Action::IDLE, Action::WALKING] {
