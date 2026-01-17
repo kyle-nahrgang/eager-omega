@@ -39,6 +39,13 @@ impl Island {
         let num_steps =
             rng.gen_range((island_width * island_height / 2)..=(island_width * island_height));
 
+        let center_options = vec![
+            IslandTile::Sand,
+            IslandTile::SandSpotted1,
+            IslandTile::SandSpotted2,
+            IslandTile::SandSpotted3,
+        ];
+
         for _ in 0..num_steps {
             if let Some(&(x, y)) = land_tiles.choose(&mut rng) {
                 // Random neighbor tile
@@ -57,11 +64,13 @@ impl Island {
                     && tiles[ny][nx] == 0
                 {
                     // Assign a random grass type
-                    tiles[ny][nx] = Island::assign_tile_type(&mut rng, &tiles, nx, ny);
+                    tiles[ny][nx] = center_options.choose(&mut rng).unwrap().clone() as u32;
                     land_tiles.push((nx, ny));
                 }
             }
         }
+
+        Island::add_island_edges(&mut tiles);
 
         Self {
             layer: Layer::new(width, height, tiles),
@@ -69,49 +78,40 @@ impl Island {
     }
 
     // Determine tile type based on neighbors
-    fn assign_tile_type(
-        rng: &mut rand::rngs::ThreadRng,
-        grid: &Vec<Vec<u32>>,
-        x: usize,
-        y: usize,
-    ) -> u32 {
+    fn add_island_edges(grid: &mut Vec<Vec<u32>>) {
         let height = grid.len();
         let width = grid[0].len();
 
-        // Check neighbors, treat out-of-bounds as water
-        let top = if y > 0 { grid[y - 1][x] != 0 } else { false };
-        let bottom = if y + 1 < height {
-            grid[y + 1][x] != 0
-        } else {
-            false
-        };
-        let left = if x > 0 { grid[y][x - 1] != 0 } else { false };
-        let right = if x + 1 < width {
-            grid[y][x + 1] != 0
-        } else {
-            false
-        };
+        // Work on a copy so we don't interfere while iterating
+        let original = grid.clone();
 
-        let center_options = vec![
-            IslandTile::Sand,
-            IslandTile::SandSpotted1,
-            IslandTile::SandSpotted2,
-            IslandTile::SandSpotted3,
-        ];
+        for y in 0..height {
+            for x in 0..width {
+                // Only consider blank tiles
+                if original[y][x] != 0 {
+                    continue;
+                }
 
-        let center: IslandTile = center_options.choose(rng).unwrap().clone();
+                let top = y > 0 && original[y - 1][x] != 0;
+                let bottom = y + 1 < height && original[y + 1][x] != 0;
+                let left = x > 0 && original[y][x - 1] != 0;
+                let right = x + 1 < width && original[y][x + 1] != 0;
 
-        (match (top, bottom, left, right) {
-            (true, true, true, true) => center,
-            (false, true, true, true) => IslandTile::SandEdgeTop,
-            (true, false, true, true) => IslandTile::SandEdgeBottom,
-            (true, true, false, true) => IslandTile::SandEdgeLeft,
-            (true, true, true, false) => IslandTile::SandEdgeRight,
-            (false, true, false, true) => IslandTile::SandCornerTopLeft,
-            (false, true, true, false) => IslandTile::SandCornerTopRight,
-            (true, false, false, true) => IslandTile::SandCornerBottomLeft,
-            (true, false, true, false) => IslandTile::SandCornerBottomRight,
-            _ => center, // fallback for small islands
-        }) as u32
+                let tile = match (top, bottom, left, right) {
+                    // Corners
+                    (false, true, true, true) => IslandTile::SandEdgeTop,
+                    (true, false, true, true) => IslandTile::SandEdgeBottom,
+                    (true, true, false, true) => IslandTile::SandEdgeLeft,
+                    (true, true, true, false) => IslandTile::SandEdgeRight,
+                    (false, true, false, true) => IslandTile::SandCornerTopLeft,
+                    (false, true, true, false) => IslandTile::SandCornerTopRight,
+                    (true, false, false, true) => IslandTile::SandCornerBottomLeft,
+                    (true, false, true, false) => IslandTile::SandCornerBottomRight,
+                    _ => continue,
+                };
+
+                grid[y][x] = tile as u32;
+            }
+        }
     }
 }
