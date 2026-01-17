@@ -1,37 +1,42 @@
 use ::rand::Rng;
 use macroquad::prelude::*;
-use macroquad_platformer::*;
-
-/* ================= CONFIG ================= */
 
 const TILE_SIZE: f32 = 16.0;
-const MAP_WIDTH: usize = 40;
-const MAP_HEIGHT: usize = 20;
+const MAP_WIDTH: i32 = 32;
+const MAP_HEIGHT: i32 = 18;
 
-/* ================= MAIN ================= */
+// --- Player animation constants ---
+const FRAME_WIDTH: f32 = 16.0;
+const FRAME_HEIGHT: f32 = 16.0;
+const FRAME_COUNT: u16 = 9;
+const FRAME_TIME: f32 = 0.15;
 
 #[macroquad::main("Simple Tilemap")]
 async fn main() {
-    // Load the tileset
+    // Load tileset
     let tileset = load_texture("assets/Tileset/spr_tileset_sunnysideworld_16px.png")
         .await
         .unwrap();
     tileset.set_filter(FilterMode::Nearest);
 
-    // Create a map filled with the same tile (index 66)
+    // Load player idle animation
+    let player_texture = load_texture("assets/Characters/Human/IDLE/base_idle_strip9.png")
+        .await
+        .unwrap();
+    player_texture.set_filter(FilterMode::Nearest);
+
+    // Random tilemap
     let mut rng = ::rand::thread_rng();
-    let mut tiles: Vec<u16> = (0..(MAP_WIDTH * MAP_HEIGHT))
+    let tiles: Vec<u16> = (0..(MAP_WIDTH * MAP_HEIGHT))
         .map(|_| rng.gen_range(1..=5))
         .collect();
 
-    // Create the collision layer (all solid for demo)
-    let colliders = vec![Tile::Solid; (MAP_WIDTH * MAP_HEIGHT) as usize];
+    // Player state
+    let mut player_pos = vec2(100.0, 100.0);
+    let mut current_frame: u16 = 0;
+    let mut frame_timer = 0.0;
 
-    // Create the physics world
-    let mut world = World::new();
-    world.add_static_tiled_layer(colliders, TILE_SIZE, TILE_SIZE, MAP_WIDTH, 0);
-
-    // Fixed camera
+    // Camera
     let camera = Camera2D::from_display_rect(Rect::new(
         0.0,
         MAP_HEIGHT as f32 * TILE_SIZE,
@@ -40,12 +45,38 @@ async fn main() {
     ));
 
     loop {
-        clear_background(BLACK);
+        let dt = get_frame_time();
 
-        // Set camera
+        // --- Player movement ---
+        let mut direction = vec2(0.0, 0.0);
+        if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) {
+            direction.x -= 1.0;
+        }
+        if is_key_down(KeyCode::D) || is_key_down(KeyCode::Right) {
+            direction.x += 1.0;
+        }
+        if is_key_down(KeyCode::W) || is_key_down(KeyCode::Up) {
+            direction.y -= 1.0;
+        }
+        if is_key_down(KeyCode::S) || is_key_down(KeyCode::Down) {
+            direction.y += 1.0;
+        }
+
+        if direction.length() > 0.0 {
+            player_pos += direction.normalize() * 60.0 * dt;
+        }
+
+        // --- Animation ---
+        frame_timer += dt;
+        if frame_timer >= FRAME_TIME {
+            frame_timer = 0.0;
+            current_frame = (current_frame + 1) % FRAME_COUNT;
+        }
+
+        clear_background(BLACK);
         set_camera(&camera);
 
-        // Draw the tilemap
+        // --- Draw tilemap ---
         for y in 0..MAP_HEIGHT {
             for x in 0..MAP_WIDTH {
                 let idx = (y * MAP_WIDTH + x) as usize;
@@ -65,8 +96,20 @@ async fn main() {
             }
         }
 
-        set_default_camera();
+        // --- Draw player ---
+        draw_texture_ex(
+            &player_texture,
+            player_pos.x,
+            player_pos.y,
+            WHITE,
+            DrawTextureParams {
+                source: Some(player_uv(current_frame)),
+                dest_size: Some(vec2(FRAME_WIDTH, FRAME_HEIGHT)),
+                ..Default::default()
+            },
+        );
 
+        set_default_camera();
         next_frame().await;
     }
 }
@@ -81,4 +124,13 @@ fn tile_uv(tile: u16) -> Rect {
     let y = (tile_index / tiles_per_row) as f32 * TILE_SIZE;
 
     Rect::new(x, y, TILE_SIZE, TILE_SIZE)
+}
+
+fn player_uv(tile_index: u16) -> Rect {
+    // Tileset has 64 columns
+    let tiles_per_row = 9;
+    let x = (tile_index % tiles_per_row) as f32 * 96.0;
+    let y = (tile_index / tiles_per_row) as f32 * 64.0;
+
+    Rect::new(x, y, 64.0, 64.0)
 }
