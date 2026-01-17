@@ -215,8 +215,9 @@ impl Island {
                 let top: bool = y > 0 && original[y - 1][x].is_some_and(|t| !t.is_bottom_edge());
                 let bottom: bool =
                     y + 1 < height && original[y + 1][x].is_some_and(|t| !t.is_top_edge());
-                let left: bool = x > 0 && original[y][x - 1].is_some();
-                let right: bool = x + 1 < width && original[y][x + 1].is_some();
+                let left: bool = x > 0 && original[y][x - 1].is_some_and(|t| !t.is_right_edge());
+                let right: bool =
+                    x + 1 < width && original[y][x + 1].is_some_and(|t| !t.is_left_edge());
 
                 let tile = match (top, bottom, left, right) {
                     (false, true, false, true) => TileIndex::SandCornerTopLeft,

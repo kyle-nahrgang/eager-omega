@@ -58,4 +58,12 @@ impl TileIndex {
     pub fn is_top_edge(&self) -> bool {
         matches!(self, TileIndex::SandEdgeTop)
     }
+
+    pub fn is_right_edge(&self) -> bool {
+        matches!(self, TileIndex::SandEdgeRight)
+    }
+
+    pub fn is_left_edge(&self) -> bool {
+        matches!(self, TileIndex::SandEdgeLeft)
+    }
 }
