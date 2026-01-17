@@ -49,6 +49,9 @@ enum Action {
     WATERING,
 }
 
+const IDLE_ACTION: Action = Action::IDLE;
+const MOVE_ACTION: Action = Action::WALKING;
+
 const FRAME_TIME: f32 = 0.15;
 
 impl Action {
@@ -140,7 +143,7 @@ pub struct Human {
 impl Human {
     pub async fn new(position: Vec2, speed: f32, hair_style: HairStyle) -> Self {
         let mut textures = std::collections::HashMap::new();
-        for action in [Action::IDLE, Action::WALKING] {
+        for action in [IDLE_ACTION, MOVE_ACTION] {
             if hair_style != HairStyle::Base {
                 let texture_path = action.get_path(HairStyle::Base);
                 let texture = load_texture(&texture_path).await.unwrap();
@@ -162,7 +165,7 @@ impl Human {
             textures,
             frame_timer: 0.0,
             current_frame: 0,
-            current_action: Action::IDLE,
+            current_action: IDLE_ACTION,
             flip_x: false,
         }
     }
@@ -188,10 +191,10 @@ impl Human {
 
         if direction.length() > 0.0 {
             self.velocity = direction.normalize() * self.speed;
-            self.current_action = Action::ROLL;
+            self.current_action = MOVE_ACTION;
         } else {
             self.velocity = Vec2::ZERO;
-            self.current_action = Action::IDLE;
+            self.current_action = IDLE_ACTION;
         }
 
         if prev_action != self.current_action {
