@@ -14,14 +14,14 @@ impl Island {
         let mut tiles = vec![vec![0; width]; height];
         let mut rng = rand::thread_rng();
 
-        let min_island_width = (width / 2).max(1);
-        let min_island_height = (height / 2).max(1);
+        let min_island_width = (width - 2).max(1);
+        let min_island_height = (height - 2).max(1);
         let max_island_width = (width).max(1);
         let max_island_height = (height).max(1);
 
         // Random island bounding box (in tile coordinates)
-        let island_width = rng.gen_range(min_island_width..=max_island_width);
-        let island_height = rng.gen_range(min_island_height..=max_island_height);
+        let island_width = width; // rng.gen_range(min_island_width..=max_island_width);
+        let island_height = width; // rng.gen_range(min_island_height..=max_island_height);
 
         let start_x = rng.gen_range(0..=(width - island_width));
         let start_y = rng.gen_range(0..=(height - island_height));
@@ -122,7 +122,7 @@ impl Island {
                 }
             }
 
-            if found_gap {
+            if !found_gap {
                 break;
             }
         }
