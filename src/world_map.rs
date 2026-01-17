@@ -4,12 +4,14 @@ use macroquad::prelude::*;
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 32;
 const MAP_HEIGHT: i32 = 18;
-const VIEW_WIDTH: f32 = MAP_WIDTH as f32 * TILE_SIZE / 4.0;
-const VIEW_HEIGHT: f32 = MAP_HEIGHT as f32 * TILE_SIZE / 4.0;
+const MAX_HEIGHT_TILES: f32 = 8.0;
 
 pub struct WorldMap {
     texture: Texture2D,
     tiles: Vec<u16>,
+    view_width: f32,
+    view_height: f32,
+    pub camera: Camera2D,
 }
 
 impl WorldMap {
@@ -24,7 +26,20 @@ impl WorldMap {
             .map(|_| rng.gen_range(1..=5))
             .collect();
 
-        Self { texture, tiles }
+        let view_height = MAX_HEIGHT_TILES * TILE_SIZE; // max 5 tiles high
+        let aspect_ratio = screen_width() / screen_height();
+        let view_width = view_height * aspect_ratio;
+
+        let camera =
+            Camera2D::from_display_rect(Rect::new(0.0, view_height, view_width, -(view_height)));
+
+        Self {
+            texture,
+            tiles,
+            camera,
+            view_height,
+            view_width,
+        }
     }
 
     pub fn is_collision(&self, position: Vec2) -> bool {
@@ -38,13 +53,13 @@ impl WorldMap {
         false
     }
 
-    pub fn draw(&self, camera: &Camera2D) {
+    pub fn draw(&self) {
         // Compute the visible area in world coordinates
-        let half_screen = vec2(VIEW_WIDTH, VIEW_HEIGHT as f32 / 2.0);
-        let view_left = camera.target.x - half_screen.x / camera.zoom.x;
-        let view_top = camera.target.y - half_screen.y / camera.zoom.y;
-        let view_right = camera.target.x + half_screen.x / camera.zoom.x;
-        let view_bottom = camera.target.y + half_screen.y / camera.zoom.y;
+        let half_screen = vec2(self.view_width, self.view_height as f32 / 2.0);
+        let view_left = self.camera.target.x - half_screen.x / self.camera.zoom.x;
+        let view_top = self.camera.target.y - half_screen.y / self.camera.zoom.y;
+        let view_right = self.camera.target.x + half_screen.x / self.camera.zoom.x;
+        let view_bottom = self.camera.target.y + half_screen.y / self.camera.zoom.y;
 
         // Convert to tile indices
         let start_x = (view_left / TILE_SIZE).floor().max(0.0) as usize;

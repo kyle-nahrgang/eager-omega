@@ -27,81 +27,29 @@ impl HairStyle {
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 enum Action {
-    ATTACK,
-    AXE,
-    CARRY,
-    CASTING,
-    CAUGHT,
-    DEATH,
-    DIG,
-    DOING,
-    HAMMERING,
-    HURT,
     IDLE,
-    JUMP,
-    MINING,
-    REELING,
     ROLL,
-    RUN,
-    SWIMMING,
-    WAITING,
     WALKING,
-    WATERING,
 }
 
 const IDLE_ACTION: Action = Action::IDLE;
 const MOVE_ACTION: Action = Action::WALKING;
-
 const FRAME_TIME: f32 = 0.15;
 
 impl Action {
     pub fn dirname(&self) -> &'static str {
         match self {
-            Action::ATTACK => "ATTACK",
-            Action::AXE => "AXE",
-            Action::CARRY => "CARRY",
-            Action::CASTING => "CASTING",
-            Action::CAUGHT => "CAUGHT",
-            Action::DEATH => "DEATH",
-            Action::DIG => "DIG",
-            Action::DOING => "DOING",
-            Action::HAMMERING => "HAMMERING",
-            Action::HURT => "HURT",
             Action::IDLE => "IDLE",
-            Action::JUMP => "JUMP",
-            Action::MINING => "MINING",
-            Action::REELING => "REELING",
             Action::ROLL => "ROLL",
-            Action::RUN => "RUN",
-            Action::SWIMMING => "SWIMMING",
-            Action::WAITING => "WAITING",
             Action::WALKING => "WALKING",
-            Action::WATERING => "WATERING",
         }
     }
 
     pub fn file_component(&self) -> &'static str {
         match self {
-            Action::ATTACK => "ATTACK",
-            Action::AXE => "AXE",
-            Action::CARRY => "CARRY",
-            Action::CASTING => "CASTING",
-            Action::CAUGHT => "CAUGHT",
-            Action::DEATH => "DEATH",
-            Action::DIG => "DIG",
-            Action::DOING => "DOING",
-            Action::HAMMERING => "HAMMERING",
-            Action::HURT => "HURT",
             Action::IDLE => "idle",
-            Action::JUMP => "JUMP",
-            Action::MINING => "MINING",
-            Action::REELING => "REELING",
             Action::ROLL => "roll",
-            Action::RUN => "run",
-            Action::SWIMMING => "SWIMMING",
-            Action::WAITING => "WAITING",
             Action::WALKING => "walk",
-            Action::WATERING => "WATERING",
         }
     }
 
@@ -109,9 +57,6 @@ impl Action {
         match self {
             Action::IDLE => 9,
             Action::WALKING => 8,
-            Action::RUN => 8,
-            Action::JUMP => 9,
-            Action::ATTACK => 10,
             Action::ROLL => 10,
             _ => 1, // Default to 1 frame for unimplemented actions
         }
@@ -125,6 +70,14 @@ impl Action {
             self.file_component(),
             self.frame_count(),
         )
+    }
+
+    pub fn get_speed(&self) -> f32 {
+        match self {
+            Action::IDLE => 0.0,
+            Action::WALKING => 60.0,
+            Action::ROLL => 120.0,
+        }
     }
 }
 
