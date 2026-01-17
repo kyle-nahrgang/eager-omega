@@ -13,6 +13,7 @@ pub struct WorldMap {
     view_height: f32,
     layers: Vec<Layer>,
     pub camera: Camera2D,
+    pub start_location: Vec2,
 }
 
 impl WorldMap {
@@ -29,6 +30,8 @@ impl WorldMap {
         let camera =
             Camera2D::from_display_rect(Rect::new(0.0, view_height, view_width, -(view_height)));
 
+        let island = Island::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
+
         Self {
             texture,
             camera,
@@ -36,8 +39,9 @@ impl WorldMap {
             view_width,
             layers: vec![
                 Ocean::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer,
-                Island::new(MAP_WIDTH as usize, MAP_HEIGHT as usize).layer,
+                island.layer,
             ],
+            start_location: island.center,
         }
     }
 

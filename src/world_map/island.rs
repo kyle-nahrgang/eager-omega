@@ -1,4 +1,5 @@
-use rand::{Rng, seq::IndexedRandom};
+use ::rand::{Rng, seq::IndexedRandom};
+use macroquad::prelude::*;
 
 use crate::world_map::{
     layer::Layer,
@@ -7,17 +8,13 @@ use crate::world_map::{
 
 pub struct Island {
     pub layer: Layer,
+    pub center: Vec2,
 }
 
 impl Island {
     pub fn new(width: usize, height: usize) -> Self {
         let mut tiles = vec![vec![0; width]; height];
-        let mut rng = rand::thread_rng();
-
-        let min_island_width = (width - 2).max(1);
-        let min_island_height = (height - 2).max(1);
-        let max_island_width = (width).max(1);
-        let max_island_height = (height).max(1);
+        let mut rng = ::rand::thread_rng();
 
         // Random island bounding box (in tile coordinates)
         let island_width = width; // rng.gen_range(min_island_width..=max_island_width);
@@ -30,6 +27,11 @@ impl Island {
         let mut land_tiles = vec![];
         let center_x = start_x + island_width / 2;
         let center_y = start_y + island_height / 2;
+
+        let center = vec2(
+            (center_x as f32 + 0.5) * 16.0,
+            (center_y as f32 + 0.5) * 16.0,
+        );
 
         land_tiles.push((center_x, center_y));
         tiles[center_y][center_x] = IslandTile::Sand as u32;
@@ -76,6 +78,7 @@ impl Island {
 
         Self {
             layer: Layer::new(width, height, tiles),
+            center,
         }
     }
 

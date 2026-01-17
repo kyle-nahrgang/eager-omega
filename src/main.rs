@@ -10,7 +10,7 @@ async fn main() {
     let mut world_map = world_map::WorldMap::new().await;
 
     // Player state
-    let mut player = Human::new(vec2(100.0, 100.0), HairStyle::Spikey).await;
+    let mut player = Human::new(world_map.start_location, HairStyle::Spikey).await;
 
     loop {
         let dt = get_frame_time();
