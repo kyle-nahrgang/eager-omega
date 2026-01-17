@@ -45,28 +45,31 @@ impl Island {
             IslandTile::SandSpotted2,
             IslandTile::SandSpotted3,
         ];
+        let rx = island_width as f32 * 0.5;
+        let ry = island_height as f32 * 0.5;
+        let cx = center_x as i32;
+        let cy = center_y as i32;
 
         for _ in 0..num_steps {
             if let Some(&(x, y)) = land_tiles.choose(&mut rng) {
-                // Random neighbor tile
                 let (nx, ny) = match rng.gen_range(0..4) {
-                    0 => (x.saturating_sub(1), y),     // left
-                    1 => ((x + 1).min(width - 1), y),  // right
-                    2 => (x, y.saturating_sub(1)),     // up
-                    _ => (x, (y + 1).min(height - 1)), // down
+                    0 => (x.saturating_sub(1), y),
+                    1 => ((x + 1).min(width - 1), y),
+                    2 => (x, y.saturating_sub(1)),
+                    _ => (x, (y + 1).min(height - 1)),
                 };
 
-                // Only add tile if it's inside the island bounding box and empty
-                if nx >= start_x
-                    && nx < start_x + island_width
-                    && ny >= start_y
-                    && ny < start_y + island_height
-                    && tiles[ny][nx] == 0
-                {
-                    // Assign a random grass type
-                    tiles[ny][nx] = center_options.choose(&mut rng).unwrap().clone() as u32;
-                    land_tiles.push((nx, ny));
+                if tiles[ny][nx] != 0 {
+                    continue;
                 }
+
+                // NEW: roundness constraint
+                if !Island::inside_radius(cx, cy, nx as i32, ny as i32, rx, ry) {
+                    continue;
+                }
+
+                tiles[ny][nx] = *center_options.choose(&mut rng).unwrap() as u32;
+                land_tiles.push((nx, ny));
             }
         }
 
@@ -75,6 +78,12 @@ impl Island {
         Self {
             layer: Layer::new(width, height, tiles),
         }
+    }
+
+    fn inside_radius(cx: i32, cy: i32, x: i32, y: i32, rx: f32, ry: f32) -> bool {
+        let dx = (x - cx) as f32 / rx;
+        let dy = (y - cy) as f32 / ry;
+        dx * dx + dy * dy <= 1.0
     }
 
     // Determine tile type based on neighbors
