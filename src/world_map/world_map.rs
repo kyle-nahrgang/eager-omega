@@ -125,8 +125,4 @@ impl WorldMap {
 
         Some(Rect::new(x, y, TILE_SIZE, TILE_SIZE))
     }
-
-    fn tile_to_world(x: usize, y: usize, tile_size: f32) -> (f32, f32) {
-        (x as f32 * tile_size, y as f32 * tile_size)
-    }
 }

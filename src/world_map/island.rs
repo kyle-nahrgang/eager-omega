@@ -1,10 +1,6 @@
-use ::rand::{Rng, seq::IndexedRandom};
-use macroquad::prelude::*;
+use macroquad::{prelude::*, rand::ChooseRandom};
 
-use crate::world_map::{
-    layer::Layer,
-    tileset::{GrassTile, IslandTile},
-};
+use crate::world_map::{layer::Layer, tileset::IslandTile};
 
 pub struct Island {
     pub layer: Layer,
@@ -14,14 +10,15 @@ pub struct Island {
 impl Island {
     pub fn new(width: usize, height: usize) -> Self {
         let mut tiles = vec![vec![0; width]; height];
-        let mut rng = ::rand::thread_rng();
+
+        rand::srand(1);
 
         // Random island bounding box (in tile coordinates)
         let island_width = width; // rng.gen_range(min_island_width..=max_island_width);
         let island_height = width; // rng.gen_range(min_island_height..=max_island_height);
 
-        let start_x = rng.gen_range(0..=(width - island_width));
-        let start_y = rng.gen_range(0..=(height - island_height));
+        let start_x = rand::RandomRange::gen_range(0, (width - island_width) as i32) as usize;
+        let start_y = rand::RandomRange::gen_range(0, (height - island_height) as i32) as usize;
 
         // Random walk to create blob-shaped island
         let mut land_tiles = vec![];
@@ -37,8 +34,10 @@ impl Island {
         tiles[center_y][center_x] = IslandTile::Sand as u32;
 
         // Number of steps proportional to bounding box size
-        let num_steps =
-            rng.gen_range((island_width * island_height / 2)..=(island_width * island_height));
+        let num_steps = rand::RandomRange::gen_range(
+            island_width * island_height / 2,
+            island_width * island_height,
+        );
 
         let center_options = vec![
             IslandTile::Sand,
@@ -52,8 +51,8 @@ impl Island {
         let cy = center_y as i32;
 
         for _ in 0..num_steps {
-            if let Some(&(x, y)) = land_tiles.choose(&mut rng) {
-                let (nx, ny) = match rng.gen_range(0..4) {
+            if let Some(&(x, y)) = land_tiles.choose() {
+                let (nx, ny) = match rand::gen_range(0, 4) {
                     0 => (x.saturating_sub(1), y),
                     1 => ((x + 1).min(width - 1), y),
                     2 => (x, y.saturating_sub(1)),
@@ -68,7 +67,7 @@ impl Island {
                     continue;
                 }
 
-                tiles[ny][nx] = *center_options.choose(&mut rng).unwrap() as u32;
+                tiles[ny][nx] = *center_options.choose().unwrap() as u32;
                 land_tiles.push((nx, ny));
             }
         }

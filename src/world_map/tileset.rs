@@ -1,18 +1,5 @@
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum TileType {
-    Terrain(TerrainTile),
-}
-
-// ---------------- Terrain ----------------
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum TerrainTile {
-    Grass(GrassTile),
-    Ocean(OceanTile),
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum GrassTile {
+pub enum _GrassTile {
     GrassDark = 66,
     GrassLight = 67,
     GrassSpottedLight1 = 130,

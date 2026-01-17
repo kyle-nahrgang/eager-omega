@@ -13,7 +13,3 @@ impl Layer {
         }
     }
 }
-
-pub trait LayerDrawable {
-    fn get_tiles(&self) -> Vec<Vec<u32>>;
-}
