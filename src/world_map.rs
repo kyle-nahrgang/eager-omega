@@ -4,6 +4,8 @@ use macroquad::prelude::*;
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 32;
 const MAP_HEIGHT: i32 = 18;
+const VIEW_WIDTH: f32 = MAP_WIDTH as f32 * TILE_SIZE / 4.0;
+const VIEW_HEIGHT: f32 = MAP_HEIGHT as f32 * TILE_SIZE / 4.0;
 
 pub struct WorldMap {
     texture: Texture2D,
@@ -36,10 +38,23 @@ impl WorldMap {
         false
     }
 
-    pub fn draw(&self) {
-        for y in 0..MAP_HEIGHT {
-            for x in 0..MAP_WIDTH {
-                let idx = (y * MAP_WIDTH + x) as usize;
+    pub fn draw(&self, camera: &Camera2D) {
+        // Compute the visible area in world coordinates
+        let half_screen = vec2(VIEW_WIDTH, VIEW_HEIGHT as f32 / 2.0);
+        let view_left = camera.target.x - half_screen.x / camera.zoom.x;
+        let view_top = camera.target.y - half_screen.y / camera.zoom.y;
+        let view_right = camera.target.x + half_screen.x / camera.zoom.x;
+        let view_bottom = camera.target.y + half_screen.y / camera.zoom.y;
+
+        // Convert to tile indices
+        let start_x = (view_left / TILE_SIZE).floor().max(0.0) as usize;
+        let start_y = (view_top / TILE_SIZE).floor().max(0.0) as usize;
+        let end_x = (view_right / TILE_SIZE).ceil().min(MAP_WIDTH as f32) as usize;
+        let end_y = (view_bottom / TILE_SIZE).ceil().min(MAP_HEIGHT as f32) as usize;
+
+        for y in start_y..end_y {
+            for x in start_x..end_x {
+                let idx = (y * MAP_WIDTH as usize + x) as usize;
                 let tile = self.tiles[idx] + 129;
 
                 draw_texture_ex(

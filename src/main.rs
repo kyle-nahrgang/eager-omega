@@ -33,10 +33,9 @@ async fn main() {
         clear_background(BLACK);
 
         camera.target = vec2(player.position.x + 24.0, player.position.y + 16.0);
-
         set_camera(&camera);
 
-        world_map.draw();
+        world_map.draw(&camera);
         player.draw();
 
         set_default_camera();
