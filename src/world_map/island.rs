@@ -18,9 +18,14 @@ impl Layer for Island {
         let min_x = (position.x / 16.0).floor() as i32;
         let min_y = (position.y / 16.0).floor() as i32;
 
+        if min_x >= self.tiles[0].len() as i32 || min_y >= self.tiles.len() as i32 {
+            return true;
+        }
+
         if self.tiles[min_y as usize][min_x as usize].is_none() {
             return true;
         }
+
         false
     }
 
