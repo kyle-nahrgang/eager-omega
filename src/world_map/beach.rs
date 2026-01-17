@@ -7,27 +7,13 @@ use crate::world_map::{
     tileset::TileIndex,
 };
 
+#[derive(Debug, Clone)]
 pub struct BeachLayer {
     pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
 }
 
 impl BeachLayer {
-    pub fn is_walkable(&self, position: Vec2, _size: Vec2) -> bool {
-        let min_x = (position.x / 16.0).floor() as i32;
-        let min_y = (position.y / 16.0).floor() as i32;
-
-        if min_x >= self.tiles[0].len() as i32 || min_y >= self.tiles.len() as i32 {
-            return true;
-        }
-
-        if self.tiles[min_y as usize][min_x as usize].is_none() {
-            return true;
-        }
-
-        false
-    }
-
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }

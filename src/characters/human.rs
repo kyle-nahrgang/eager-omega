@@ -26,38 +26,38 @@ impl HairStyle {
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
-enum Action {
+pub enum CharacterAction {
     IDLE,
     ROLL,
     WALKING,
 }
 
-const IDLE_ACTION: Action = Action::IDLE;
-const MOVE_ACTION: Action = Action::WALKING;
+const IDLE_ACTION: CharacterAction = CharacterAction::IDLE;
+const MOVE_ACTION: CharacterAction = CharacterAction::WALKING;
 const FRAME_TIME: f32 = 0.15;
 
-impl Action {
+impl CharacterAction {
     pub fn dirname(&self) -> &'static str {
         match self {
-            Action::IDLE => "IDLE",
-            Action::ROLL => "ROLL",
-            Action::WALKING => "WALKING",
+            CharacterAction::IDLE => "IDLE",
+            CharacterAction::ROLL => "ROLL",
+            CharacterAction::WALKING => "WALKING",
         }
     }
 
     pub fn file_component(&self) -> &'static str {
         match self {
-            Action::IDLE => "idle",
-            Action::ROLL => "roll",
-            Action::WALKING => "walk",
+            CharacterAction::IDLE => "idle",
+            CharacterAction::ROLL => "roll",
+            CharacterAction::WALKING => "walk",
         }
     }
 
     pub fn frame_count(&self) -> u16 {
         match self {
-            Action::IDLE => 9,
-            Action::WALKING => 8,
-            Action::ROLL => 10,
+            CharacterAction::IDLE => 9,
+            CharacterAction::WALKING => 8,
+            CharacterAction::ROLL => 10,
         }
     }
 
@@ -73,9 +73,9 @@ impl Action {
 
     pub fn get_speed(&self) -> f32 {
         match self {
-            Action::IDLE => 0.0,
-            Action::WALKING => 60.0,
-            Action::ROLL => 120.0,
+            CharacterAction::IDLE => 0.0,
+            CharacterAction::WALKING => 60.0,
+            CharacterAction::ROLL => 120.0,
         }
     }
 }
@@ -85,17 +85,17 @@ pub struct Human {
     pub velocity: Vec2,
     pub speed: f32,
     pub hair_style: HairStyle,
-    textures: std::collections::HashMap<(HairStyle, Action), Texture2D>,
+    textures: std::collections::HashMap<(HairStyle, CharacterAction), Texture2D>,
     frame_timer: f32,
     current_frame: u16,
-    current_action: Action,
+    current_action: CharacterAction,
     flip_x: bool,
 }
 
 impl Human {
     pub async fn new(position: Vec2, hair_style: HairStyle) -> Self {
         let mut textures = std::collections::HashMap::new();
-        for action in [IDLE_ACTION, MOVE_ACTION, Action::ROLL] {
+        for action in [IDLE_ACTION, MOVE_ACTION, CharacterAction::ROLL] {
             if hair_style != HairStyle::Base {
                 let texture_path = action.get_path(HairStyle::Base);
                 let texture = load_texture(&texture_path).await.unwrap();
@@ -126,8 +126,8 @@ impl Human {
         let mut direction = vec2(0.0, 0.0);
         let prev_action = self.current_action;
 
-        let mut is_rolling = self.current_action == Action::ROLL
-            && self.current_frame != Action::ROLL.frame_count() - 1;
+        let mut is_rolling = self.current_action == CharacterAction::ROLL
+            && self.current_frame != CharacterAction::ROLL.frame_count() - 1;
 
         if is_key_down(KeyCode::A) || is_key_down(KeyCode::Left) || (is_rolling && self.flip_x) {
             direction.x -= 1.0;
@@ -149,10 +149,10 @@ impl Human {
 
         if is_key_down(KeyCode::Space) && !is_rolling {
             is_rolling = true;
-            self.current_action = Action::ROLL;
+            self.current_action = CharacterAction::ROLL;
             self.current_frame = 0;
             self.frame_timer = 0.0;
-            self.speed = Action::ROLL.get_speed();
+            self.speed = CharacterAction::ROLL.get_speed();
         }
 
         if !is_rolling {
@@ -166,19 +166,24 @@ impl Human {
         };
 
         let new_position = self.position + new_velocity * dt;
-        let collision = world_map.is_walkable(new_position, vec2(24.0, 16.0));
+        let (_, new_tile) = world_map.get_tile(
+            (new_position.x / 16.0).floor() as usize,
+            (new_position.y / 16.0).floor() as usize,
+        );
 
-        if direction.length() > 0.0 && !collision {
+        let is_walkable = new_tile.move_action() == MOVE_ACTION;
+
+        if direction.length() > 0.0 && is_walkable {
             self.velocity = new_velocity;
             self.current_action = if is_rolling {
-                Action::ROLL
+                CharacterAction::ROLL
             } else {
                 MOVE_ACTION
             };
         } else {
             self.velocity = Vec2::ZERO;
             self.current_action = if is_rolling {
-                Action::ROLL
+                CharacterAction::ROLL
             } else {
                 IDLE_ACTION
             };

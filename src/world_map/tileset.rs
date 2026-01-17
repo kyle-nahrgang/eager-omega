@@ -1,3 +1,5 @@
+use crate::characters::CharacterAction;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TileIndex {
     _GrassDark = 66,
@@ -51,19 +53,25 @@ pub enum TileIndex {
 }
 
 impl TileIndex {
-    pub fn is_bottom_edge(&self) -> bool {
-        matches!(self, TileIndex::SandEdgeBottom)
-    }
-
-    pub fn is_top_edge(&self) -> bool {
-        matches!(self, TileIndex::SandEdgeTop)
-    }
-
-    pub fn is_right_edge(&self) -> bool {
-        matches!(self, TileIndex::SandEdgeRight)
-    }
-
-    pub fn is_left_edge(&self) -> bool {
-        matches!(self, TileIndex::SandEdgeLeft)
+    pub fn move_action(&self) -> CharacterAction {
+        match self {
+            TileIndex::Ocean1
+            | TileIndex::Ocean2
+            | TileIndex::Ocean3
+            | TileIndex::Ocean4
+            | TileIndex::Ocean5
+            | TileIndex::Ocean6
+            | TileIndex::Ocean7
+            | TileIndex::Ocean8
+            | TileIndex::Ocean9
+            | TileIndex::Ocean10
+            | TileIndex::Ocean11
+            | TileIndex::Ocean12
+            | TileIndex::Ocean13
+            | TileIndex::Ocean14
+            | TileIndex::Ocean15
+            | TileIndex::Ocean16 => CharacterAction::IDLE,
+            _ => CharacterAction::WALKING,
+        }
     }
 }

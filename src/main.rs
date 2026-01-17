@@ -56,11 +56,10 @@ async fn main() {
             WHITE,
         );
 
+        let (layer, tile) = world_map.get_tile(tile_x as usize, tile_y as usize);
+
         draw_text(
-            &format!(
-                "{:?}",
-                world_map.layers[1].get_tile(tile_x as usize, tile_y as usize)
-            ),
+            &format!("{:?} - {:?}", layer.to_string(), tile),
             50.0,
             110.0,
             20.0,

@@ -1,6 +1,8 @@
 use macroquad::{prelude::*, rand::srand};
 
-use crate::world_map::{beach::BeachLayer, grass::GrassLayer, layer::Layer, ocean::OceanLayer};
+use crate::world_map::{
+    beach::BeachLayer, grass::GrassLayer, layer::Layer, ocean::OceanLayer, tileset::TileIndex,
+};
 
 const TILE_SIZE: f32 = 16.0;
 const MAP_WIDTH: i32 = 64;
@@ -59,15 +61,14 @@ impl WorldMap {
         }
     }
 
-    pub fn is_walkable(&self, position: Vec2, size: Vec2) -> bool {
-
+    pub fn get_tile(&self, x: usize, y: usize) -> (&Layer, TileIndex) {
         for layer in self.layers.iter().rev() {
-            if layer.is_walkable(position, size) {
-                return true;
+            if let Some(tile) = layer.get_tile(x, y) {
+                return (layer, tile);
             }
         }
 
-        false
+        panic!("No tile found at position ({}, {})", x, y);
     }
 
     pub fn draw(&self) {

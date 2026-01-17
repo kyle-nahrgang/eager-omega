@@ -1,16 +1,11 @@
-use macroquad::math::Vec2;
-
 use crate::world_map::tileset::TileIndex;
 
+#[derive(Debug, Clone)]
 pub struct OceanLayer {
     tiles: Vec<Vec<Option<TileIndex>>>,
 }
 
 impl OceanLayer {
-    pub fn is_walkable(&self, _position: Vec2, _size: Vec2) -> bool {
-        false
-    }
-
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }

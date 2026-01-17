@@ -7,19 +7,13 @@ use crate::world_map::{
     tileset::TileIndex,
 };
 
+#[derive(Debug, Clone)]
 pub struct GrassLayer {
     pub tiles: Vec<Vec<Option<TileIndex>>>,
     pub center: Vec2,
 }
 
 impl GrassLayer {
-    pub fn is_walkable(&self, position: Vec2, _size: Vec2) -> bool {
-        let min_x = (position.x / 16.0).floor() as i32;
-        let min_y = (position.y / 16.0).floor() as i32;
-
-        false
-    }
-
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         self.tiles[y][x]
     }

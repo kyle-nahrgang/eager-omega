@@ -8,6 +8,7 @@ use crate::world_map::{
     beach::BeachLayer, grass::GrassLayer, ocean::OceanLayer, tileset::TileIndex,
 };
 
+#[derive(Debug, Clone)]
 pub enum Layer {
     Ocean(OceanLayer),
     Beach(BeachLayer),
@@ -15,19 +16,19 @@ pub enum Layer {
 }
 
 impl Layer {
-    pub fn is_walkable(&self, position: Vec2, size: Vec2) -> bool {
-        match self {
-            Layer::Ocean(_) => false,
-            Layer::Beach(layer) => layer.is_walkable(position, size),
-            Layer::Grass(layer) => layer.is_walkable(position, size),
-        }
-    }
-
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         match self {
             Layer::Ocean(layer) => layer.get_tile(x, y),
             Layer::Beach(layer) => layer.get_tile(x, y),
             Layer::Grass(layer) => layer.get_tile(x, y),
+        }
+    }
+
+    pub fn to_string(&self) -> &'static str {
+        match self {
+            Layer::Ocean(_) => "Ocean",
+            Layer::Beach(_) => "Beach",
+            Layer::Grass(_) => "Grass",
         }
     }
 }

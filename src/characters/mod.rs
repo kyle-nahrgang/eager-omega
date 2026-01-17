@@ -1,2 +1,2 @@
 mod human;
-pub use human::{HairStyle, Human};
+pub use human::{CharacterAction, HairStyle, Human};
