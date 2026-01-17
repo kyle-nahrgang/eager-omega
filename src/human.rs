@@ -94,7 +94,7 @@ pub struct Human {
 }
 
 impl Human {
-    pub async fn new(position: Vec2, speed: f32, hair_style: HairStyle) -> Self {
+    pub async fn new(position: Vec2, hair_style: HairStyle) -> Self {
         let mut textures = std::collections::HashMap::new();
         for action in [IDLE_ACTION, MOVE_ACTION, Action::ROLL] {
             if hair_style != HairStyle::Base {
@@ -113,7 +113,7 @@ impl Human {
         Self {
             position,
             velocity: Vec2::ZERO,
-            speed,
+            speed: MOVE_ACTION.get_speed(),
             hair_style,
             textures,
             frame_timer: 0.0,
@@ -153,6 +153,11 @@ impl Human {
             self.current_action = Action::ROLL;
             self.current_frame = 0;
             self.frame_timer = 0.0;
+            self.speed = Action::ROLL.get_speed();
+        }
+
+        if !is_rolling {
+            self.speed = MOVE_ACTION.get_speed();
         }
 
         let new_velocity = if direction.length() > 0.0 {
