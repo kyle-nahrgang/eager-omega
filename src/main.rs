@@ -37,11 +37,11 @@ async fn main() {
     let mut frame_timer = 0.0;
 
     // Camera
-    let camera = Camera2D::from_display_rect(Rect::new(
+    let mut camera = Camera2D::from_display_rect(Rect::new(
         0.0,
-        MAP_HEIGHT as f32 * TILE_SIZE,
-        MAP_WIDTH as f32 * TILE_SIZE,
-        -(MAP_HEIGHT as f32 * TILE_SIZE),
+        MAP_HEIGHT as f32 * TILE_SIZE / 4.0,
+        MAP_WIDTH as f32 * TILE_SIZE / 4.0,
+        -(MAP_HEIGHT as f32 * TILE_SIZE) / 4.0,
     ));
 
     loop {
@@ -74,6 +74,7 @@ async fn main() {
         }
 
         clear_background(BLACK);
+        camera.target = player_pos; // center camera on the player
         set_camera(&camera);
 
         // --- Draw tilemap ---
@@ -126,11 +127,9 @@ fn tile_uv(tile: u16) -> Rect {
     Rect::new(x, y, TILE_SIZE, TILE_SIZE)
 }
 
-fn player_uv(tile_index: u16) -> Rect {
-    // Tileset has 64 columns
-    let tiles_per_row = 9;
-    let x = (tile_index % tiles_per_row) as f32 * 96.0;
-    let y = (tile_index / tiles_per_row) as f32 * 64.0;
+fn player_uv(frame: u16) -> Rect {
+    let frame_width = 96.0;
+    let frame_height = 64.0;
 
-    Rect::new(x, y, 64.0, 64.0)
+    Rect::new(frame as f32 * frame_width, 0.0, frame_width, frame_height)
 }
