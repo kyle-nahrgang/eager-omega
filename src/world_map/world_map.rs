@@ -1,7 +1,7 @@
 use macroquad::{prelude::*, rand::srand};
 
 use crate::world_map::{
-    beach::BeachLayer, grass::GrassLayer, layer::Layer, ocean::OceanLayer, tileset::TileIndex,
+    beach::BeachLayer, grass::GrassLayer, layer::LayerType, ocean::OceanLayer, tileset::TileIndex,
 };
 
 const TILE_SIZE: f32 = 16.0;
@@ -13,7 +13,7 @@ pub struct WorldMap {
     texture: Texture2D,
     view_width: f32,
     view_height: f32,
-    pub layers: Vec<Layer>,
+    pub layers: Vec<LayerType>,
     pub camera: Camera2D,
     pub start_location: Vec2,
 }
@@ -37,9 +37,9 @@ impl WorldMap {
         let island = BeachLayer::new(MAP_WIDTH as usize, MAP_HEIGHT as usize);
         let start_location = island.center;
 
-        let island = Layer::Beach(island);
+        let island = LayerType::Beach(island);
 
-        let grass1 = Layer::Grass(GrassLayer::new(
+        let grass1 = LayerType::Grass(GrassLayer::new(
             MAP_WIDTH as usize,
             MAP_HEIGHT as usize,
             Some(&island),
@@ -51,7 +51,7 @@ impl WorldMap {
             view_height,
             view_width,
             layers: vec![
-                Layer::Ocean(OceanLayer::new(MAP_WIDTH as usize, MAP_HEIGHT as usize)),
+                LayerType::Ocean(OceanLayer::new(MAP_WIDTH as usize, MAP_HEIGHT as usize)),
                 island,
                 grass1,
             ],
@@ -59,7 +59,7 @@ impl WorldMap {
         }
     }
 
-    pub fn get_tile(&self, x: usize, y: usize) -> (&Layer, TileIndex) {
+    pub fn get_tile(&self, x: usize, y: usize) -> (&LayerType, TileIndex) {
         for layer in self.layers.iter().rev() {
             if let Some(tile) = layer.get_tile(x, y) {
                 return (layer, tile);

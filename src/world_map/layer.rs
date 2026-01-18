@@ -9,7 +9,7 @@ use crate::world_map::{
 };
 
 #[derive(Debug, Clone)]
-pub enum Layer {
+pub enum LayerType {
     Ocean(OceanLayer),
     Beach(BeachLayer),
     Grass(GrassLayer),
@@ -18,14 +18,42 @@ pub enum Layer {
 macro_rules! delegate_layer {
     ($self:expr, $method:ident($($arg:expr),*)) => {
         match $self {
-            Layer::Ocean(l) => l.$method($($arg),*),
-            Layer::Beach(l) => l.$method($($arg),*),
-            Layer::Grass(l) => l.$method($($arg),*),
+            LayerType::Ocean(l) => l.$method($($arg),*),
+            LayerType::Beach(l) => l.$method($($arg),*),
+            LayerType::Grass(l) => l.$method($($arg),*),
         }
     };
 }
 
-impl Layer {
+// todo get rid of the enum and use this??
+#[derive(Debug, Clone)]
+pub struct LayerImpl<T: TerrainLayerGenerator> {
+    pub tiles: Vec<Vec<Option<TileIndex>>>,
+    pub center: Vec2,
+    altitude: usize,
+    _marker: std::marker::PhantomData<T>,
+}
+
+impl<T: TerrainLayerGenerator> LayerImpl<T> {
+    pub fn new(tiles: Vec<Vec<Option<TileIndex>>>, altitude: usize) -> Self {
+        let (center, tiles) = T::generate_layer(tiles[0].len(), tiles.len());
+
+        Self {
+            tiles,
+            center,
+            altitude,
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    pub fn get_tile(&self, pos: Vec2) -> Option<TileIndex> {
+        let tile_x = (pos.x / 16.0).floor() as i32;
+        let tile_y = (pos.y / 16.0).floor() as i32;
+        self.tiles[tile_y as usize][tile_x as usize]
+    }
+}
+
+impl LayerType {
     pub fn get_tile(&self, x: usize, y: usize) -> Option<TileIndex> {
         delegate_layer!(self, get_tile(x, y))
     }
@@ -36,9 +64,9 @@ impl Layer {
 
     pub fn to_string(&self) -> &'static str {
         match self {
-            Layer::Ocean(_) => "Ocean",
-            Layer::Beach(_) => "Beach",
-            Layer::Grass(_) => "Grass",
+            LayerType::Ocean(_) => "Ocean",
+            LayerType::Beach(_) => "Beach",
+            LayerType::Grass(_) => "Grass",
         }
     }
 }

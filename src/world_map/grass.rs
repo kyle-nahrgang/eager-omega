@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 
 use crate::world_map::{
     layer::{
-        Layer, TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet,
+        LayerType, TerrainCenterTileSet, TerrainCornerTileSet, TerrainEdgeTileSet,
         TerrainLayerGenerator,
     },
     tileset::TileIndex,
@@ -30,11 +30,11 @@ impl GrassLayer {
         );
     }
 
-    pub fn new(width: usize, height: usize, prev_layer: Option<&Layer>) -> Self
+    pub fn new(width: usize, height: usize, prev_layer: Option<&LayerType>) -> Self
     where
         Self: Sized,
     {
-        let altitude = if let Some(Layer::Grass(grass_layer)) = prev_layer {
+        let altitude = if let Some(LayerType::Grass(grass_layer)) = prev_layer {
             grass_layer.altitude + 1
         } else {
             0
