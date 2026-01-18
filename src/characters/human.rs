@@ -1,4 +1,7 @@
 use macroquad::prelude::*;
+use macroquad_tiled::Map;
+
+use crate::world_map::TileIndex;
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 pub enum HairStyle {
@@ -122,7 +125,7 @@ impl Human {
         }
     }
 
-    pub fn update(&mut self, dt: f32, world_map: &crate::world_map::WorldMap) {
+    pub fn update(&mut self, dt: f32, tiled_map: &Map) {
         let mut direction = vec2(0.0, 0.0);
         let prev_action = self.current_action;
 
@@ -166,12 +169,17 @@ impl Human {
         };
 
         let new_position = self.position + new_velocity * dt;
-        let (_, new_tile) = world_map.get_tile(
-            (new_position.x / 16.0).floor() as usize,
-            (new_position.y / 16.0).floor() as usize,
-        );
 
-        let is_walkable = new_tile.move_action() == MOVE_ACTION;
+        let new_tile_x = (new_position.x / 16.0).floor() as u32;
+        let new_tile_y = (new_position.y / 16.0).floor() as u32;
+
+        let is_walkable = match tiled_map.get_tile("ground", new_tile_x, new_tile_y) {
+            Some(t) => true,
+            None => match tiled_map.get_tile("ladders", new_tile_x, new_tile_y) {
+                Some(_) => true,
+                None => false,
+            },
+        };
 
         if direction.length() > 0.0 && is_walkable {
             self.velocity = new_velocity;

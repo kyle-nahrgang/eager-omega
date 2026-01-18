@@ -6,3 +6,5 @@ mod layer;
 mod ocean;
 mod tileset;
 mod world_map;
+
+pub use tileset::TileIndex;
