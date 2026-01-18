@@ -113,7 +113,7 @@ pub trait TerrainLayerGenerator:
         );
 
         land_tiles.push((center_x, center_y));
-        tiles[center_y][center_x] = Some(TileIndex::Sand);
+        tiles[center_y][center_x] = Some(*Self::center_tiles().choose().unwrap());
 
         // Number of steps proportional to bounding box size
         let num_steps = rand::RandomRange::gen_range(width * height / 2, width * height);
