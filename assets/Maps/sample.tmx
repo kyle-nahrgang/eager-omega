@@ -2,6 +2,14 @@
 <map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="13" nextobjectid="6">
  <tileset firstgid="1" name="w1" tilewidth="16" tileheight="16" tilecount="4096" columns="64">
   <image source="../Tileset/spr_tileset_sunnysideworld_16px.png" width="1024" height="1024"/>
+  <tile id="260">
+   <objectgroup draworder="index" id="2">
+    <object id="1" x="0.288958" y="0.825593">
+     <polygon points="0,0 0.0412797,14.4892 15.2322,14.6543"/>
+    </object>
+    <object id="2" x="0" y="0" width="16" height="16"/>
+   </objectgroup>
+  </tile>
  </tileset>
  <layer id="3" name="ocean background" width="30" height="20">
   <data encoding="csv">

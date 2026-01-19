@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
 
 mod bevy_helper;
+mod characters;
+mod world_map;
 
 fn main() {
     App::new()
