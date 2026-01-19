@@ -39,6 +39,8 @@ async fn main() {
     let mut camera =
         Camera2D::from_display_rect(Rect::new(0.0, view_height, view_width, -(view_height)));
 
+    // rotated jawns: `0xA000018F` is `18F` rotated 90 degrees clockwise
+
     loop {
         let dt = get_frame_time();
 

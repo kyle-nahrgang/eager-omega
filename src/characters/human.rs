@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use macroquad_tiled::Map;
+use macroquad_tiled::{Map, Tile};
 
 use crate::world_map::TileIndex;
 
@@ -168,10 +168,17 @@ impl Human {
             Vec2::ZERO
         };
 
-        let new_position = self.position + new_velocity * dt;
+        let mut new_position = self.position + new_velocity * dt;
 
         let new_tile_x = (new_position.x / 16.0).floor() as u32;
         let new_tile_y = (new_position.y / 16.0).floor() as u32;
+
+        match tiled_map.get_tile("actions", new_tile_x, new_tile_y) {
+            Some(action) => {
+                println!("Action tile: {:?}", action.attrs);
+            }
+            None => {}
+        }
 
         let is_walkable = match tiled_map.get_tile("ground", new_tile_x, new_tile_y) {
             Some(t) => true,
