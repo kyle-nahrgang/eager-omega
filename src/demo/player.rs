@@ -18,9 +18,12 @@ pub(super) fn plugin(app: &mut App) {
     // Record directional input as movement controls.
     app.add_systems(
         Update,
-        record_player_directional_input
-            .in_set(AppSystems::RecordInput)
-            .in_set(PausableSystems),
+        (
+            camera_follow,
+            record_player_directional_input
+                .in_set(AppSystems::RecordInput)
+                .in_set(PausableSystems),
+        ),
     );
 }
 
@@ -163,5 +166,17 @@ fn record_player_directional_input(
     // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
         controller.intent = intent;
+    }
+}
+
+fn camera_follow(
+    player_query: Query<&Transform, With<Player>>,
+    mut camera_query: Query<&mut Transform, (With<Camera>, Without<Player>)>,
+) {
+    if let Ok(player_transform) = player_query.single() {
+        if let Ok(mut camera_transform) = camera_query.single_mut() {
+            camera_transform.translation.x = player_transform.translation.x;
+            camera_transform.translation.y = player_transform.translation.y;
+        }
     }
 }

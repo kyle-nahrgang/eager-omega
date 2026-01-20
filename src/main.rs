@@ -13,7 +13,7 @@ mod screens;
 mod theme;
 
 use avian2d::PhysicsPlugins;
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{asset::AssetMetaCheck, camera::ScalingMode, prelude::*};
 use bevy_ecs_tiled::prelude::*;
 
 fn main() -> AppExit {
@@ -113,7 +113,21 @@ struct Pause(pub bool);
 struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((Name::new("Camera"), Camera2d));
+    commands.spawn((
+        Name::new("Camera"),
+        Camera2d,
+        Projection::Orthographic(OrthographicProjection {
+            near: 0.0,
+            far: 1000.0,
+            viewport_origin: (0.5, 0.5).into(),
+            scaling_mode: ScalingMode::WindowSize,
+            scale: 0.4,
+            area: Rect {
+                min: Vec2::ZERO,
+                max: Vec2::ZERO,
+            },
+        }),
+    ));
 }
 
 fn debug_map_transform(q: Query<(&Name, &GlobalTransform)>) {
