@@ -89,6 +89,15 @@ fn trigger_step_sound_effect(
     }
 }
 
+#[derive(Clone, Reflect, Resource)]
+#[reflect(Resource)]
+pub struct AnimationClip {
+    pub images: Vec<Handle<Image>>,
+    pub frames: usize,
+    pub width: u32,
+    pub height: u32,
+}
+
 /// Component that tracks player's animation state.
 /// It is tightly bound to the texture atlas we use.
 #[derive(Component, Reflect)]
@@ -99,7 +108,7 @@ pub struct PlayerAnimation {
     state: PlayerAnimationState,
 }
 
-#[derive(Reflect, PartialEq)]
+#[derive(Reflect, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum PlayerAnimationState {
     Idling,
     Walking,

@@ -1,10 +1,12 @@
 //! Player-specific behavior.
 
+use std::collections::HashMap;
+
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
     demo::{
-        animation::PlayerAnimation,
+        animation::{PlayerAnimation, PlayerAnimationState},
         movement::{MovementController, ScreenWrap},
     },
 };
@@ -25,57 +27,12 @@ pub(super) fn plugin(app: &mut App) {
     );
 }
 
-#[derive(Reflect, PartialEq, Clone)]
-pub enum PlayerAnimationState {
-    Idling,
-    Walking,
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
-pub struct PlayerAnimationSet {
-    state: PlayerAnimationState,
-    #[dependency]
-    base: Handle<Image>,
-
-    #[dependency]
-    hair: Handle<Image>,
-
-    frames: usize,
-    width: f32,
-    height: f32,
-}
-
-impl PlayerAnimationSet {
-    pub fn new(
-        assets: &AssetServer,
-        state: PlayerAnimationState,
-        base_path: &'static str,
-        hair_path: &'static str,
-        frames: usize,
-        width: f32,
-        height: f32,
-    ) -> Self {
-        Self {
-            state,
-            base: assets.load_with_settings(base_path, |settings: &mut ImageLoaderSettings| {
-                settings.sampler = ImageSampler::nearest();
-            }),
-            hair: assets.load_with_settings(hair_path, |settings: &mut ImageLoaderSettings| {
-                settings.sampler = ImageSampler::nearest();
-            }),
-            frames,
-            width,
-            height,
-        }
-    }
-}
-
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct PlayerAssets {
     #[dependency]
     ducky: Handle<Image>,
+    pub actions: HashMap<PlayerAnimationState, AnimationClip>,
     #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
 }
@@ -91,6 +48,7 @@ impl FromWorld for PlayerAssets {
                     settings.sampler = ImageSampler::nearest();
                 },
             ),
+            actions: HashMap::new(),
             steps: vec![
                 assets.load("audio/sound_effects/step1.ogg"),
                 assets.load("audio/sound_effects/step2.ogg"),
