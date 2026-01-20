@@ -32,6 +32,7 @@ impl Plugin for AppPlugin {
                     // This causes errors and even panics on web build on itch.
                     // See https://github.com/bevyengine/bevy_github_ci_template/issues/48.
                     meta_check: AssetMetaCheck::Never,
+                    watch_for_changes_override: Some(cfg!(feature = "dev")),
                     ..default()
                 })
                 .set(WindowPlugin {
@@ -53,7 +54,7 @@ impl Plugin for AppPlugin {
             TiledPlugin::default(),
             // Setup physics
             TiledPhysicsPlugin::<TiledPhysicsAvianBackend>::default(),
-            PhysicsPlugins::default().with_length_unit(100.0),
+            PhysicsPlugins::default(),
         ));
 
         app.init_asset::<TiledMapAsset>();

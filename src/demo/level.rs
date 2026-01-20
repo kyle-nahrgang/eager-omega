@@ -1,4 +1,5 @@
 //! Spawn the main level.
+use avian2d::prelude::RigidBody;
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
 
@@ -39,18 +40,26 @@ pub fn spawn_level(
     player_assets: Res<PlayerAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
-    commands.spawn((
-        Name::new("Level"),
-        TiledMap(level_assets.map.clone()),
-        TilemapAnchor::Center,
-        Visibility::default(),
-        DespawnOnExit(Screen::Gameplay),
-        children![
-            player(100.0, &player_assets, &mut texture_atlas_layouts),
-            (
-                Name::new("Gameplay Music"),
-                music(level_assets.music.clone())
-            )
-        ],
-    ));
+    commands
+        .spawn((
+            Name::new("Level"),
+            TiledMap(level_assets.map.clone()),
+            TilemapAnchor::Center,
+            Visibility::default(),
+            DespawnOnExit(Screen::Gameplay),
+            children![
+                player(100.0, &player_assets, &mut texture_atlas_layouts),
+                (
+                    Name::new("Gameplay Music"),
+                    music(level_assets.music.clone())
+                )
+            ],
+        ))
+        .observe(
+            |collider_created: On<TiledEvent<ColliderCreated>>, mut commands: Commands| {
+                commands
+                    .entity(collider_created.event().origin)
+                    .insert(RigidBody::Static);
+            },
+        );
 }

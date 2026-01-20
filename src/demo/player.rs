@@ -7,9 +7,10 @@ use crate::{
     asset_tracking::LoadResource,
     demo::{
         animation::{PlayerAnimation, PlayerAnimationClip, PlayerAnimationState},
-        movement::{MovementController, ScreenWrap},
+        movement::MovementController,
     },
 };
+use avian2d::prelude::{Collider, LinearVelocity, LockedAxes, RigidBody};
 use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
@@ -102,6 +103,10 @@ pub fn player(
                         index: player_animation.frame,
                     },
                 ),
+                Transform {
+                    translation: Vec3::new(0.0, 0.0, -1.0),
+                    ..default()
+                },
             ),
             (
                 Name::new("Player Hair"),
@@ -112,18 +117,21 @@ pub fn player(
                         layout: texture_atlas_layout.clone(),
                         index: player_animation.frame,
                     },
-                ),
+                )
             ),
         ],
+        RigidBody::Dynamic,
+        LinearVelocity::default(),
+        Collider::circle(1.0),
+        LockedAxes::ROTATION_LOCKED,
         Transform {
-            translation: Vec3::new(-40.0, -40.0, -150.0),
+            translation: Vec3::new(-80.0, -80.0, -150.0),
             ..default()
         },
         MovementController {
             max_speed,
             ..default()
         },
-        ScreenWrap,
         player_animation,
     )
 }
