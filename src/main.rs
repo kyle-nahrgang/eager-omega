@@ -87,6 +87,7 @@ impl Plugin for AppPlugin {
 
         // Spawn the main camera.
         app.add_systems(Startup, spawn_camera);
+        app.add_systems(Update, debug_map_transform);
     }
 }
 
@@ -113,4 +114,12 @@ struct PausableSystems;
 
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((Name::new("Camera"), Camera2d));
+}
+
+fn debug_map_transform(q: Query<(&Name, &GlobalTransform)>) {
+    for (name, gt) in &q {
+        if name.as_str() == "Level" {
+            info!("Map center at {:?}", gt.translation());
+        }
+    }
 }

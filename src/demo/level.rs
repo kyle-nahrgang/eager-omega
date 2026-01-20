@@ -41,16 +41,16 @@ pub fn spawn_level(
 ) {
     commands.spawn((
         Name::new("Level"),
-        Transform::default(),
+        TiledMap(level_assets.map.clone()),
+        TilemapAnchor::Center,
         Visibility::default(),
         DespawnOnExit(Screen::Gameplay),
         children![
-            player(400.0, &player_assets, &mut texture_atlas_layouts),
+            player(100.0, &player_assets, &mut texture_atlas_layouts),
             (
                 Name::new("Gameplay Music"),
                 music(level_assets.music.clone())
             )
         ],
     ));
-    commands.spawn((TiledMap(level_assets.map.clone()), TilemapAnchor::Center));
 }
