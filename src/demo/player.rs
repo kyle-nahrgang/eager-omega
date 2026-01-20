@@ -1,10 +1,5 @@
 //! Player-specific behavior.
 
-use bevy::{
-    image::{ImageLoaderSettings, ImageSampler},
-    prelude::*,
-};
-
 use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
@@ -12,6 +7,10 @@ use crate::{
         animation::PlayerAnimation,
         movement::{MovementController, ScreenWrap},
     },
+};
+use bevy::{
+    image::{ImageLoaderSettings, ImageSampler},
+    prelude::*,
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -24,6 +23,82 @@ pub(super) fn plugin(app: &mut App) {
             .in_set(AppSystems::RecordInput)
             .in_set(PausableSystems),
     );
+}
+
+#[derive(Reflect, PartialEq, Clone)]
+pub enum PlayerAnimationState {
+    Idling,
+    Walking,
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct PlayerAnimationSet {
+    state: PlayerAnimationState,
+    #[dependency]
+    base: Handle<Image>,
+
+    #[dependency]
+    hair: Handle<Image>,
+
+    frames: usize,
+    width: f32,
+    height: f32,
+}
+
+impl PlayerAnimationSet {
+    pub fn new(
+        assets: &AssetServer,
+        state: PlayerAnimationState,
+        base_path: &'static str,
+        hair_path: &'static str,
+        frames: usize,
+        width: f32,
+        height: f32,
+    ) -> Self {
+        Self {
+            state,
+            base: assets.load_with_settings(base_path, |settings: &mut ImageLoaderSettings| {
+                settings.sampler = ImageSampler::nearest();
+            }),
+            hair: assets.load_with_settings(hair_path, |settings: &mut ImageLoaderSettings| {
+                settings.sampler = ImageSampler::nearest();
+            }),
+            frames,
+            width,
+            height,
+        }
+    }
+}
+
+#[derive(Resource, Asset, Clone, Reflect)]
+#[reflect(Resource)]
+pub struct PlayerAssets {
+    #[dependency]
+    ducky: Handle<Image>,
+    #[dependency]
+    pub steps: Vec<Handle<AudioSource>>,
+}
+
+impl FromWorld for PlayerAssets {
+    fn from_world(world: &mut World) -> Self {
+        let assets = world.resource::<AssetServer>();
+        Self {
+            ducky: assets.load_with_settings(
+                "Characters/Human/IDLE/base_idle_strip9.png",
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve pixel art style.
+                    settings.sampler = ImageSampler::nearest();
+                },
+            ),
+            steps: vec![
+                assets.load("audio/sound_effects/step1.ogg"),
+                assets.load("audio/sound_effects/step2.ogg"),
+                assets.load("audio/sound_effects/step3.ogg"),
+                assets.load("audio/sound_effects/step4.ogg"),
+            ],
+        }
+    }
 }
 
 /// The player character.
@@ -91,35 +166,5 @@ fn record_player_directional_input(
     // Apply movement intent to controllers.
     for mut controller in &mut controller_query {
         controller.intent = intent;
-    }
-}
-
-#[derive(Resource, Asset, Clone, Reflect)]
-#[reflect(Resource)]
-pub struct PlayerAssets {
-    #[dependency]
-    ducky: Handle<Image>,
-    #[dependency]
-    pub steps: Vec<Handle<AudioSource>>,
-}
-
-impl FromWorld for PlayerAssets {
-    fn from_world(world: &mut World) -> Self {
-        let assets = world.resource::<AssetServer>();
-        Self {
-            ducky: assets.load_with_settings(
-                "Characters/Human/IDLE/base_idle_strip9.png",
-                |settings: &mut ImageLoaderSettings| {
-                    // Use `nearest` image sampling to preserve pixel art style.
-                    settings.sampler = ImageSampler::nearest();
-                },
-            ),
-            steps: vec![
-                assets.load("audio/sound_effects/step1.ogg"),
-                assets.load("audio/sound_effects/step2.ogg"),
-                assets.load("audio/sound_effects/step3.ogg"),
-                assets.load("audio/sound_effects/step4.ogg"),
-            ],
-        }
     }
 }
