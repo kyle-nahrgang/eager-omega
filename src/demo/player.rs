@@ -42,7 +42,7 @@ impl FromWorld for PlayerAssets {
                     PlayerAnimationClip::new(
                         &assets,
                         "Characters/Human/IDLE/base_idle_strip9.png",
-                        Some("Characters/Human/IDLE/spikeyhair_idle_strip9.png"),
+                        "Characters/Human/IDLE/spikeyhair_idle_strip9.png",
                         9,
                         96,
                         64,
@@ -53,7 +53,7 @@ impl FromWorld for PlayerAssets {
                     PlayerAnimationClip::new(
                         &assets,
                         "Characters/Human/RUN/base_run_strip8.png",
-                        Some("Characters/Human/RUN/spikeyhair_run_strip8.png"),
+                        "Characters/Human/RUN/spikeyhair_run_strip8.png",
                         8,
                         96,
                         64,
@@ -88,13 +88,30 @@ pub fn player(
     (
         Name::new("Player"),
         Player,
-        Sprite::from_atlas_image(
-            idle_animation.base_image.clone(),
-            TextureAtlas {
-                layout: texture_atlas_layout.clone(),
-                index: player_animation.frame,
-            },
-        ),
+        children![
+            (
+                Name::new("Player Body"),
+                PlayerBody,
+                Sprite::from_atlas_image(
+                    idle_animation.base_image.clone(),
+                    TextureAtlas {
+                        layout: texture_atlas_layout.clone(),
+                        index: player_animation.frame,
+                    },
+                ),
+            ),
+            (
+                Name::new("Player Hair"),
+                PlayerHair,
+                Sprite::from_atlas_image(
+                    idle_animation.hair_image.clone(),
+                    TextureAtlas {
+                        layout: texture_atlas_layout.clone(),
+                        index: player_animation.frame,
+                    },
+                ),
+            ),
+        ],
         Transform {
             translation: Vec3::new(-40.0, -40.0, -150.0),
             ..default()
@@ -111,6 +128,14 @@ pub fn player(
 #[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
 #[reflect(Component)]
 struct Player;
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[reflect(Component)]
+pub struct PlayerBody;
+
+#[derive(Component, Debug, Clone, Copy, PartialEq, Eq, Default, Reflect)]
+#[reflect(Component)]
+pub struct PlayerHair;
 
 fn record_player_directional_input(
     input: Res<ButtonInput<KeyCode>>,

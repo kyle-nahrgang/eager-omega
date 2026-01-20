@@ -14,7 +14,10 @@ use std::time::Duration;
 use crate::{
     AppSystems, PausableSystems,
     audio::sound_effect,
-    demo::{movement::MovementController, player::PlayerAssets},
+    demo::{
+        movement::MovementController,
+        player::{PlayerAssets, PlayerBody, PlayerHair},
+    },
 };
 
 pub(super) fn plugin(app: &mut App) {
@@ -25,7 +28,8 @@ pub(super) fn plugin(app: &mut App) {
             update_animation_timer.in_set(AppSystems::TickTimers),
             (
                 update_animation_movement,
-                update_animation_atlas,
+                update_body_animation,
+                update_hair_animation,
                 trigger_step_sound_effect,
             )
                 .chain()
@@ -45,14 +49,9 @@ fn update_animation_timer(time: Res<Time>, mut query: Query<&mut PlayerAnimation
 /// Update the sprite direction and animation state (idling/walking).
 fn update_animation_movement(
     player_assets: If<Res<PlayerAssets>>,
-    mut player_query: Query<(&MovementController, &mut Sprite, &mut PlayerAnimation)>,
+    mut player_query: Query<(&MovementController, &mut PlayerAnimation)>,
 ) {
-    for (controller, mut sprite, mut animation) in &mut player_query {
-        let dx = controller.intent.x;
-        if dx != 0.0 {
-            sprite.flip_x = dx < 0.0;
-        }
-
+    for (controller, mut animation) in &mut player_query {
         let animation_state = if controller.intent == Vec2::ZERO {
             PlayerAnimationState::Idling
         } else {
@@ -63,20 +62,55 @@ fn update_animation_movement(
             animation_state,
             player_assets.as_ref().actions.get(&animation_state),
         );
-
-        // change the clip if needed
-        sprite.image = animation.clip.base_image.clone();
     }
 }
 
-/// Update the texture atlas to reflect changes in the animation.
-fn update_animation_atlas(mut query: Query<(&PlayerAnimation, &mut Sprite)>) {
-    for (animation, mut sprite) in &mut query {
-        let Some(atlas) = sprite.texture_atlas.as_mut() else {
-            continue;
-        };
-        if animation.changed() {
-            atlas.index = animation.frame;
+fn update_body_animation(
+    mut players: Query<(&MovementController, &Children, &mut PlayerAnimation)>,
+    mut body_sprites: Query<&mut Sprite, With<PlayerBody>>,
+) {
+    for (controller, children, animation) in &mut players {
+        for &child in children {
+            if let Ok(mut sprite) = body_sprites.get_mut(child) {
+                let dx = controller.intent.x;
+                if dx != 0.0 {
+                    sprite.flip_x = dx < 0.0;
+                }
+
+                sprite.image = animation.clip.base_image.clone();
+
+                let Some(atlas) = sprite.texture_atlas.as_mut() else {
+                    continue;
+                };
+                if animation.changed() {
+                    atlas.index = animation.frame;
+                }
+            }
+        }
+    }
+}
+
+fn update_hair_animation(
+    mut players: Query<(&MovementController, &Children, &mut PlayerAnimation)>,
+    mut hair_sprites: Query<&mut Sprite, With<PlayerHair>>,
+) {
+    for (controller, children, animation) in &mut players {
+        for &child in children {
+            if let Ok(mut sprite) = hair_sprites.get_mut(child) {
+                let dx = controller.intent.x;
+                if dx != 0.0 {
+                    sprite.flip_x = dx < 0.0;
+                }
+
+                sprite.image = animation.clip.hair_image.clone();
+
+                let Some(atlas) = sprite.texture_atlas.as_mut() else {
+                    continue;
+                };
+                if animation.changed() {
+                    atlas.index = animation.frame;
+                }
+            }
         }
     }
 }
@@ -104,7 +138,7 @@ fn trigger_step_sound_effect(
 #[reflect(Resource)]
 pub struct PlayerAnimationClip {
     pub base_image: Handle<Image>,
-    pub hair_image: Option<Handle<Image>>,
+    pub hair_image: Handle<Image>,
     pub frames: usize,
     pub width: u32,
     pub height: u32,
@@ -115,7 +149,7 @@ impl PlayerAnimationClip {
     pub fn new(
         asset_server: &AssetServer,
         base_path: &'static str,
-        hair_path: Option<&'static str>,
+        hair_path: &'static str,
         frames: usize,
         width: u32,
         height: u32,
@@ -128,7 +162,13 @@ impl PlayerAnimationClip {
                     settings.sampler = ImageSampler::nearest();
                 },
             ),
-            hair_image: None,
+            hair_image: asset_server.load_with_settings(
+                hair_path,
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve pixel art style.
+                    settings.sampler = ImageSampler::nearest();
+                },
+            ),
             frames,
             width,
             height,
