@@ -4,7 +4,10 @@
 //! - [Sprite animation](https://github.com/bevyengine/bevy/blob/latest/examples/2d/sprite_animation.rs)
 //! - [Timers](https://github.com/bevyengine/bevy/blob/latest/examples/time/timers.rs)
 
-use bevy::prelude::*;
+use bevy::{
+    image::{ImageLoaderSettings, ImageSampler},
+    prelude::*,
+};
 use rand::prelude::*;
 use std::time::Duration;
 
@@ -41,6 +44,7 @@ fn update_animation_timer(time: Res<Time>, mut query: Query<&mut PlayerAnimation
 
 /// Update the sprite direction and animation state (idling/walking).
 fn update_animation_movement(
+    player_assets: If<Res<PlayerAssets>>,
     mut player_query: Query<(&MovementController, &mut Sprite, &mut PlayerAnimation)>,
 ) {
     for (controller, mut sprite, mut animation) in &mut player_query {
@@ -54,7 +58,14 @@ fn update_animation_movement(
         } else {
             PlayerAnimationState::Walking
         };
-        animation.update_state(animation_state);
+
+        animation.update_state(
+            animation_state,
+            player_assets.as_ref().actions.get(&animation_state),
+        );
+
+        // change the clip if needed
+        sprite.image = animation.clip.base_image.clone();
     }
 }
 
@@ -65,7 +76,7 @@ fn update_animation_atlas(mut query: Query<(&PlayerAnimation, &mut Sprite)>) {
             continue;
         };
         if animation.changed() {
-            atlas.index = animation.get_atlas_index();
+            atlas.index = animation.frame;
         }
     }
 }
@@ -89,13 +100,41 @@ fn trigger_step_sound_effect(
     }
 }
 
-#[derive(Clone, Reflect, Resource)]
+#[derive(Clone, Reflect, Resource, Debug)]
 #[reflect(Resource)]
-pub struct AnimationClip {
-    pub images: Vec<Handle<Image>>,
+pub struct PlayerAnimationClip {
+    pub base_image: Handle<Image>,
+    pub hair_image: Option<Handle<Image>>,
     pub frames: usize,
     pub width: u32,
     pub height: u32,
+    pub duration: Duration,
+}
+
+impl PlayerAnimationClip {
+    pub fn new(
+        asset_server: &AssetServer,
+        base_path: &'static str,
+        hair_path: Option<&'static str>,
+        frames: usize,
+        width: u32,
+        height: u32,
+    ) -> Self {
+        Self {
+            base_image: asset_server.load_with_settings(
+                base_path,
+                |settings: &mut ImageLoaderSettings| {
+                    // Use `nearest` image sampling to preserve pixel art style.
+                    settings.sampler = ImageSampler::nearest();
+                },
+            ),
+            hair_image: None,
+            frames,
+            width,
+            height,
+            duration: Duration::from_millis(50), // 30 FPS?
+        }
+    }
 }
 
 /// Component that tracks player's animation state.
@@ -104,44 +143,25 @@ pub struct AnimationClip {
 #[reflect(Component)]
 pub struct PlayerAnimation {
     timer: Timer,
-    frame: usize,
+    pub frame: usize,
     state: PlayerAnimationState,
+    clip: PlayerAnimationClip,
 }
 
-#[derive(Reflect, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Reflect, PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub enum PlayerAnimationState {
     Idling,
     Walking,
 }
 
 impl PlayerAnimation {
-    /// The number of idle frames.
-    const IDLE_FRAMES: usize = 9;
-    /// The duration of each idle frame.
-    const IDLE_INTERVAL: Duration = Duration::from_millis(500);
-    /// The number of walking frames.
-    const WALKING_FRAMES: usize = 9;
-    /// The duration of each walking frame.
-    const WALKING_INTERVAL: Duration = Duration::from_millis(50);
-
-    fn idling() -> Self {
+    pub fn new(start_clip: &PlayerAnimationClip) -> Self {
         Self {
-            timer: Timer::new(Self::IDLE_INTERVAL, TimerMode::Repeating),
+            timer: Timer::new(start_clip.duration, TimerMode::Repeating),
             frame: 0,
             state: PlayerAnimationState::Idling,
+            clip: start_clip.clone(),
         }
-    }
-
-    fn walking() -> Self {
-        Self {
-            timer: Timer::new(Self::WALKING_INTERVAL, TimerMode::Repeating),
-            frame: 0,
-            state: PlayerAnimationState::Walking,
-        }
-    }
-
-    pub fn new() -> Self {
-        Self::idling()
     }
 
     /// Update animation timers.
@@ -150,19 +170,23 @@ impl PlayerAnimation {
         if !self.timer.is_finished() {
             return;
         }
-        self.frame = (self.frame + 1)
-            % match self.state {
-                PlayerAnimationState::Idling => Self::IDLE_FRAMES,
-                PlayerAnimationState::Walking => Self::WALKING_FRAMES,
-            };
+        self.frame = (self.frame + 1) % self.clip.frames;
     }
 
     /// Update animation state if it changes.
-    pub fn update_state(&mut self, state: PlayerAnimationState) {
-        if self.state != state {
-            match state {
-                PlayerAnimationState::Idling => *self = Self::idling(),
-                PlayerAnimationState::Walking => *self = Self::walking(),
+    pub fn update_state(
+        &mut self,
+        state: PlayerAnimationState,
+        clip: Option<&PlayerAnimationClip>,
+    ) {
+        if self.state != state
+            && let Some(clip) = clip
+        {
+            *self = Self {
+                timer: Timer::new(clip.duration, TimerMode::Repeating),
+                frame: 0,
+                state,
+                clip: clip.clone(),
             }
         }
     }
@@ -170,14 +194,5 @@ impl PlayerAnimation {
     /// Whether animation changed this tick.
     pub fn changed(&self) -> bool {
         self.timer.is_finished()
-    }
-
-    /// Return sprite index in the atlas.
-    pub fn get_atlas_index(&self) -> usize {
-        match self.state {
-            _ => self.frame,
-            // PlayerAnimationState::Idling => self.frame,
-            // PlayerAnimationState::Walking => 6 + self.frame,
-        }
     }
 }

@@ -6,14 +6,11 @@ use crate::{
     AppSystems, PausableSystems,
     asset_tracking::LoadResource,
     demo::{
-        animation::{PlayerAnimation, PlayerAnimationState},
+        animation::{PlayerAnimation, PlayerAnimationClip, PlayerAnimationState},
         movement::{MovementController, ScreenWrap},
     },
 };
-use bevy::{
-    image::{ImageLoaderSettings, ImageSampler},
-    prelude::*,
-};
+use bevy::prelude::*;
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<PlayerAssets>();
@@ -30,9 +27,7 @@ pub(super) fn plugin(app: &mut App) {
 #[derive(Resource, Asset, Clone, Reflect)]
 #[reflect(Resource)]
 pub struct PlayerAssets {
-    #[dependency]
-    ducky: Handle<Image>,
-    pub actions: HashMap<PlayerAnimationState, AnimationClip>,
+    pub actions: HashMap<PlayerAnimationState, PlayerAnimationClip>,
     #[dependency]
     pub steps: Vec<Handle<AudioSource>>,
 }
@@ -41,14 +36,30 @@ impl FromWorld for PlayerAssets {
     fn from_world(world: &mut World) -> Self {
         let assets = world.resource::<AssetServer>();
         Self {
-            ducky: assets.load_with_settings(
-                "Characters/Human/IDLE/base_idle_strip9.png",
-                |settings: &mut ImageLoaderSettings| {
-                    // Use `nearest` image sampling to preserve pixel art style.
-                    settings.sampler = ImageSampler::nearest();
-                },
-            ),
-            actions: HashMap::new(),
+            actions: HashMap::from_iter([
+                (
+                    PlayerAnimationState::Idling,
+                    PlayerAnimationClip::new(
+                        &assets,
+                        "Characters/Human/IDLE/base_idle_strip9.png",
+                        Some("Characters/Human/IDLE/spikeyhair_idle_strip9.png"),
+                        9,
+                        96,
+                        64,
+                    ),
+                ),
+                (
+                    PlayerAnimationState::Walking,
+                    PlayerAnimationClip::new(
+                        &assets,
+                        "Characters/Human/RUN/base_run_strip8.png",
+                        Some("Characters/Human/RUN/spikeyhair_run_strip8.png"),
+                        8,
+                        96,
+                        64,
+                    ),
+                ),
+            ]),
             steps: vec![
                 assets.load("audio/sound_effects/step1.ogg"),
                 assets.load("audio/sound_effects/step2.ogg"),
@@ -69,16 +80,19 @@ pub fn player(
     // You can learn more in this example: https://github.com/bevyengine/bevy/blob/latest/examples/2d/texture_atlas.rs
     let layout = TextureAtlasLayout::from_grid(UVec2::new(96, 64), 9, 1, None, None);
     let texture_atlas_layout = texture_atlas_layouts.add(layout);
-    let player_animation = PlayerAnimation::new();
-
+    let idle_animation = player_assets
+        .actions
+        .get(&PlayerAnimationState::Idling)
+        .unwrap();
+    let player_animation = PlayerAnimation::new(idle_animation);
     (
         Name::new("Player"),
         Player,
         Sprite::from_atlas_image(
-            player_assets.ducky.clone(),
+            idle_animation.base_image.clone(),
             TextureAtlas {
-                layout: texture_atlas_layout,
-                index: player_animation.get_atlas_index(),
+                layout: texture_atlas_layout.clone(),
+                index: player_animation.frame,
             },
         ),
         Transform {
