@@ -1,0 +1,13 @@
+{
+    "maps": [
+        {
+            "fileName": "sample.tmx",
+            "height": 320,
+            "width": 800,
+            "x": -80,
+            "y": 0
+        }
+    ],
+    "onlyShowAdjacentMaps": false,
+    "type": "world"
+}

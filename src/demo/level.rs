@@ -1,6 +1,3 @@
-//! Spawn the main level.
-use std::collections::HashMap;
-
 use avian2d::prelude::RigidBody;
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
