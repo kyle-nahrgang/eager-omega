@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="24">
+<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="29">
  <tileset firstgid="1" name="w1" tilewidth="16" tileheight="16" tilecount="4096" columns="64">
   <image source="../Tileset/spr_tileset_sunnysideworld_16px.png" width="1024" height="1024"/>
  </tileset>
@@ -82,7 +82,7 @@
 0,0,201,0,261,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,261,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,263,0,264,201,395,0,0,0,0,0,397,0,261,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,398,399,400,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,2050,0,2052,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 263,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -171,12 +171,28 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
- <objectgroup id="16" name="actions" visible="0">
-  <object id="23" gid="335" x="47.9223" y="63.9223" width="16" height="16">
+ <objectgroup id="16" name="actions">
+  <object id="25" name="cave-teleport" x="151.579" y="52.979" height="0.490547">
    <properties>
-    <property name="action" type="class" propertytype="eager_omega::demo::level::ActionTile">
+    <property name="teleport" type="class" propertytype="eager_omega::demo::level::TeleportTile">
      <properties>
-      <property name=":variant" propertytype="eager_omega::demo::level::ActionTile:::Variant" value="Spawn"/>
+      <property name="map_id" value="main"/>
+      <property name="tile_id" value="cave-exit"/>
+      <property name="world_id" value="main"/>
+     </properties>
+    </property>
+   </properties>
+  </object>
+  <object id="26" name="spawn" x="54.9412" y="54.4507">
+   <properties>
+    <property name="spawn" type="class" propertytype="eager_omega::demo::level::SpawnTile"/>
+   </properties>
+  </object>
+  <object id="28" name="cave-exit" x="214.859" y="246.745">
+   <properties>
+    <property name="cave-exit" type="class" propertytype="eager_omega::demo::level::TeleportDestination">
+     <properties>
+      <property name="id" value="cave-exit"/>
      </properties>
     </property>
    </properties>
