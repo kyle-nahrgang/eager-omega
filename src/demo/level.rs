@@ -6,12 +6,14 @@ use bevy_ecs_tiled::prelude::*;
 use crate::{
     asset_tracking::LoadResource,
     audio::music,
-    demo::player::{PlayerAssets, player},
+    demo::player::{Player, PlayerAssets, player},
     screens::Screen,
 };
 
 pub(super) fn plugin(app: &mut App) {
-    app.load_resource::<LevelAssets>();
+    app.load_resource::<LevelAssets>()
+        .register_type::<ActionTile>()
+        .add_systems(Update, set_player_spawn_from_tile);
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -31,6 +33,15 @@ impl FromWorld for LevelAssets {
             map: assets.load("Maps/sample.tmx"),
         }
     }
+}
+
+#[derive(Component, Default, Debug, Reflect, PartialEq, Eq, Clone, Copy)]
+#[reflect(Component, Default)]
+enum ActionTile {
+    #[default]
+    None,
+    Spawn,
+    Teleport,
 }
 
 /// A system that spawns the main level.
@@ -62,4 +73,23 @@ pub fn spawn_level(
                     .insert(RigidBody::Static);
             },
         );
+}
+
+fn set_player_spawn_from_tile(
+    mut player_query: Query<&mut Transform, With<Player>>,
+    action_tiles: Query<(&ActionTile, &GlobalTransform), Added<ActionTile>>,
+) {
+    for (action, tile_transform) in &action_tiles {
+        if *action != ActionTile::Spawn {
+            continue;
+        }
+
+        let mut spawn_pos = tile_transform.translation();
+
+        for mut player_transform in &mut player_query {
+            spawn_pos.x += 8.0;
+            spawn_pos.y += 8.0;
+            player_transform.translation = spawn_pos;
+        }
+    }
 }

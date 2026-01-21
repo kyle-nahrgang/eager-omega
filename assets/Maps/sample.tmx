@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="16" nextobjectid="23">
+<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="24">
  <tileset firstgid="1" name="w1" tilewidth="16" tileheight="16" tilecount="4096" columns="64">
   <image source="../Tileset/spr_tileset_sunnysideworld_16px.png" width="1024" height="1024"/>
  </tileset>
@@ -171,6 +171,17 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
 </data>
  </layer>
+ <objectgroup id="16" name="actions" visible="0">
+  <object id="23" gid="335" x="47.9223" y="63.9223" width="16" height="16">
+   <properties>
+    <property name="action" type="class" propertytype="eager_omega::demo::level::ActionTile">
+     <properties>
+      <property name=":variant" propertytype="eager_omega::demo::level::ActionTile:::Variant" value="Spawn"/>
+     </properties>
+    </property>
+   </properties>
+  </object>
+ </objectgroup>
  <layer id="10" name="doortops" width="30" height="20">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
