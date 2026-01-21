@@ -14,7 +14,14 @@ pub(super) fn plugin(app: &mut App) {
         .register_type::<SpawnTile>()
         .register_type::<TeleportTile>()
         .register_type::<TeleportDestination>()
-        .add_systems(Update, (set_player_spawn_from_tile, player_teleport));
+        .add_systems(
+            Update,
+            (
+                handle_map_added,
+                set_player_spawn_from_tile,
+                player_teleport,
+            ),
+        );
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -34,6 +41,12 @@ impl FromWorld for LevelAssets {
             map: assets.load("Maps/sample.tmx"),
         }
     }
+}
+
+#[derive(Resource, Debug, Reflect)]
+#[reflect(Resource)]
+struct CurrentMap {
+    path: String,
 }
 
 #[derive(Component, Default, Debug, Reflect, PartialEq, Eq, Clone, Copy)]
@@ -57,6 +70,7 @@ struct TeleportDestination {
 /// A system that spawns the main level.
 pub fn spawn_level(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
     level_assets: Res<LevelAssets>,
     player_assets: Res<PlayerAssets>,
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -64,8 +78,7 @@ pub fn spawn_level(
     commands
         .spawn((
             Name::new("Level"),
-            TiledMap(level_assets.map.clone()),
-            TilemapAnchor::Center,
+            TiledWorld(asset_server.load("Maps/one.world")),
             Visibility::default(),
             DespawnOnExit(Screen::Gameplay),
             children![
@@ -83,6 +96,17 @@ pub fn spawn_level(
                     .insert(RigidBody::Static);
             },
         );
+}
+
+fn handle_map_added(
+    mut commands: Commands,
+    mut maps: Query<(Entity, &TiledWorld), Added<TiledWorld>>,
+) {
+    for (_, map) in &mut maps {
+        commands.insert_resource(CurrentMap {
+            path: map.0.path().unwrap().to_string(),
+        });
+    }
 }
 
 fn set_player_spawn_from_tile(
@@ -104,6 +128,7 @@ fn player_teleport(
     mut player_query: Query<&mut Transform, With<Player>>,
     tiles: Query<(&TeleportTile, &GlobalTransform), Without<Player>>,
     destinations: Query<(&TeleportDestination, &GlobalTransform)>,
+    current_map: If<Res<CurrentMap>>,
 ) {
     let tile_size = 16.0;
 
@@ -124,7 +149,9 @@ fn player_teleport(
 
             if delta.x <= half_size.x && delta.y <= half_size.y {
                 for (dest, dest_transform) in &destinations {
-                    if dest.id == teleport.tile_id {
+                    if current_map.path != teleport.map_id {
+                        info!("must switch maps before we can teleport...");
+                    } else if dest.id == teleport.tile_id {
                         // Player entered the teleport tile!
                         player.translation = dest_transform.translation();
                         info!("Teleported player to {:?}", dest.id);
