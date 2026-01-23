@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use avian2d::prelude::RigidBody;
 use bevy::prelude::*;
 use bevy_ecs_tiled::prelude::*;
@@ -11,11 +13,18 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
-        .register_type::<MapId>()
         .register_type::<SpawnTile>()
         .register_type::<TeleportTile>()
         .register_type::<TileId>()
-        .add_systems(Update, (set_player_spawn_from_tile, player_teleport));
+        .add_systems(
+            Update,
+            (
+                handle_world_added,
+                handle_tile_id_added,
+                set_player_spawn_from_tile,
+                player_teleport,
+            ),
+        );
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -53,17 +62,10 @@ struct TileId {
     id: String,
 }
 
-#[derive(Component, Default, Debug, Reflect)]
-#[reflect(Component, Default)]
-struct MapId {
-    id: String,
-}
-
-#[derive(Resource, Debug, Reflect)]
-#[reflect(Resource)]
-struct SwitchMaps {
-    transform: GlobalTransform,
-    destination_map: String,
+#[derive(Resource, Default, Debug, Reflect)]
+#[reflect(Resource, Default)]
+struct TileLocationLookup {
+    map: HashMap<String, GlobalTransform>,
 }
 
 /// A system that spawns the main level.
@@ -115,7 +117,7 @@ fn set_player_spawn_from_tile(
 fn player_teleport(
     mut player_query: Query<&mut Transform, With<Player>>,
     tiles: Query<(&TeleportTile, &GlobalTransform), Without<Player>>,
-    destinations: Query<(&TileId, &GlobalTransform)>,
+    lookup: If<Res<TileLocationLookup>>,
 ) {
     let tile_size = 16.0;
 
@@ -128,21 +130,36 @@ fn player_teleport(
                 tile_transform.translation() + Vec3::new(tile_size * 0.5, -tile_size * 0.5, 0.0);
 
             // Check if player is inside this tile (simple AABB check)
-            let half_size = Vec2::new(tile_size * 0.75, tile_size * 0.75);
+            let half_size = Vec2::new(tile_size * 0.5, tile_size * 0.5);
             let delta = Vec2::new(
                 (player_pos.x - tile_center.x).abs(),
                 (player_pos.y - tile_center.y).abs(),
             );
 
             if delta.x <= half_size.x && delta.y <= half_size.y {
-                for (tile_id, dest_transform) in &destinations {
-                    if tile_id.id == teleport.destination_id {
-                        // Player entered the teleport tile!
-                        player.translation = dest_transform.translation();
-                        info!("Teleported player to {:?}", tile_id.id);
-                    }
+                if let Some(dest_transform) = lookup.map.get(&teleport.destination_id) {
+                    // Player entered the teleport tile!
+                    player.translation = dest_transform.translation();
+                    info!("Teleported player to {:?}", teleport.destination_id);
                 }
             }
         }
+    }
+}
+
+fn handle_world_added(mut commands: Commands, mut world: Query<&TiledWorld, Added<TiledWorld>>) {
+    for world in &mut world {
+        info!("found world {:?}", world);
+        commands.insert_resource(TileLocationLookup::default());
+    }
+}
+
+fn handle_tile_id_added(
+    mut tile: Query<(&GlobalTransform, &TileId), Added<TileId>>,
+    mut lookup: If<ResMut<TileLocationLookup>>,
+) {
+    for (transform, tile_id) in &mut tile {
+        info!("found tile id {:?} at {:?}", tile_id, transform);
+        lookup.map.insert(tile_id.id.clone(), transform.clone());
     }
 }
