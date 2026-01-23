@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="20" height="10" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="4">
+<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="20" height="10" tilewidth="16" tileheight="16" infinite="0" nextlayerid="5" nextobjectid="9">
+ <properties>
+  <property name="map_id" type="class" propertytype="eager_omega::demo::level::MapId">
+   <properties>
+    <property name="id" value="sample-cave"/>
+   </properties>
+  </property>
+ </properties>
  <tileset firstgid="1" source="spr_tileset_sunnysideworld_16px.tsx"/>
  <layer id="1" name="Tile Layer 1" width="20" height="10">
   <data encoding="csv">
@@ -16,22 +23,20 @@
 </data>
  </layer>
  <objectgroup id="3" name="actions">
-  <object id="2" x="56.006" y="71.72">
+  <object id="4" name="cave-entrace" x="39.0834" y="70.9141">
    <properties>
-    <property name="dest" type="class" propertytype="eager_omega::demo::level::TeleportDestination">
+    <property name="tile_id" type="class" propertytype="eager_omega::demo::level::TileId">
      <properties>
-      <property name="id" value="sample-cave-entrance"/>
+      <property name="id" value="cave-entrance"/>
      </properties>
     </property>
    </properties>
   </object>
-  <object id="3" x="6.04382" y="70.9141">
+  <object id="8" name="cave-exit" x="3.22337" y="72.1229">
    <properties>
-    <property name="tele" type="class" propertytype="eager_omega::demo::level::TeleportTile">
+    <property name="teleport" type="class" propertytype="eager_omega::demo::level::TeleportTile">
      <properties>
-      <property name="map_id" value="sample"/>
-      <property name="tile_id" value="cave-exit-landing"/>
-      <property name="world_id" value="one"/>
+      <property name="destination_id" value="cave-exit"/>
      </properties>
     </property>
    </properties>
@@ -42,9 +47,9 @@
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+2062,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 1930,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+2062,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,

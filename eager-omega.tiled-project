@@ -13716,6 +13716,23 @@
         {
             "color": "#ff000000",
             "drawFill": true,
+            "id": 680,
+            "members": [
+                {
+                    "name": "path",
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "name": "eager_omega::demo::level::CurrentMap",
+            "type": "class",
+            "useAs": [
+                "property"
+            ]
+        },
+        {
+            "color": "#ff000000",
+            "drawFill": true,
             "id": 653,
             "members": [
                 {
@@ -13738,6 +13755,23 @@
         {
             "color": "#ff000000",
             "drawFill": true,
+            "id": 681,
+            "members": [
+                {
+                    "name": "id",
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "name": "eager_omega::demo::level::MapId",
+            "type": "class",
+            "useAs": [
+                "property"
+            ]
+        },
+        {
+            "color": "#ff000000",
+            "drawFill": true,
             "id": 677,
             "members": [
             ],
@@ -13750,25 +13784,73 @@
         {
             "color": "#ff000000",
             "drawFill": true,
+            "id": 682,
+            "members": [
+                {
+                    "name": "destination_map",
+                    "type": "string",
+                    "value": ""
+                },
+                {
+                    "name": "transform",
+                    "propertyType": "bevy_transform::components::global_transform::GlobalTransform",
+                    "type": "class",
+                    "value": {
+                    }
+                }
+            ],
+            "name": "eager_omega::demo::level::SwitchMaps",
+            "type": "class",
+            "useAs": [
+                "property"
+            ]
+        },
+        {
+            "color": "#ff000000",
+            "drawFill": true,
+            "id": 679,
+            "members": [
+                {
+                    "name": "id",
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "name": "eager_omega::demo::level::TeleportDestination",
+            "type": "class",
+            "useAs": [
+                "property"
+            ]
+        },
+        {
+            "color": "#ff000000",
+            "drawFill": true,
             "id": 678,
             "members": [
                 {
-                    "name": "map_id",
-                    "type": "string",
-                    "value": ""
-                },
-                {
-                    "name": "tile_id",
-                    "type": "string",
-                    "value": ""
-                },
-                {
-                    "name": "world_id",
+                    "name": "destination_id",
                     "type": "string",
                     "value": ""
                 }
             ],
             "name": "eager_omega::demo::level::TeleportTile",
+            "type": "class",
+            "useAs": [
+                "property"
+            ]
+        },
+        {
+            "color": "#ff000000",
+            "drawFill": true,
+            "id": 683,
+            "members": [
+                {
+                    "name": "id",
+                    "type": "string",
+                    "value": ""
+                }
+            ],
+            "name": "eager_omega::demo::level::TileId",
             "type": "class",
             "useAs": [
                 "property"
@@ -14341,23 +14423,6 @@
                 }
             ],
             "name": "glam::Vec4",
-            "type": "class",
-            "useAs": [
-                "property"
-            ]
-        },
-        {
-            "color": "#ff000000",
-            "drawFill": true,
-            "id": 679,
-            "members": [
-                {
-                    "name": "id",
-                    "type": "string",
-                    "value": ""
-                }
-            ],
-            "name": "eager_omega::demo::level::TeleportDestination",
             "type": "class",
             "useAs": [
                 "property"

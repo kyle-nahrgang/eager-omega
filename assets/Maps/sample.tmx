@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="34">
+<map version="1.10" tiledversion="1.11.1-99-gec89c545" orientation="orthogonal" renderorder="right-down" width="20" height="20" tilewidth="16" tileheight="16" infinite="0" nextlayerid="17" nextobjectid="44">
+ <properties>
+  <property name="map_id" type="class" propertytype="eager_omega::demo::level::MapId">
+   <properties>
+    <property name="id" value="sample"/>
+   </properties>
+  </property>
+ </properties>
  <tileset firstgid="1" name="w1" tilewidth="16" tileheight="16" tilecount="4096" columns="64">
   <image source="../Tileset/spr_tileset_sunnysideworld_16px.png" width="1024" height="1024"/>
  </tileset>
@@ -172,13 +179,11 @@
 </data>
  </layer>
  <objectgroup id="16" name="actions">
-  <object id="25" name="cave-entrance" x="151.579" y="52.979" height="0.490547">
+  <object id="30" name="cave-exit" x="151.088" y="96.1472">
    <properties>
-    <property name="teleport" type="class" propertytype="eager_omega::demo::level::TeleportTile">
+    <property name="tile_id" type="class" propertytype="eager_omega::demo::level::TileId">
      <properties>
-      <property name="map_id" value="main"/>
-      <property name="tile_id" value="cave-entrance-landing"/>
-      <property name="world_id" value="main"/>
+      <property name="id" value="cave-exit"/>
      </properties>
     </property>
    </properties>
@@ -188,11 +193,24 @@
     <property name="spawn" type="class" propertytype="eager_omega::demo::level::SpawnTile"/>
    </properties>
   </object>
-  <object id="30" name="cave-exit-landing" x="151.088" y="96.1472">
+  <object id="39" name="cave-entrance" x="152" y="54.9091">
    <properties>
-    <property name="dest" type="class" propertytype="eager_omega::demo::level::TeleportDestination">
+    <property name="teleport" type="class" propertytype="eager_omega::demo::level::TeleportTile">
      <properties>
-      <property name="id" value="cave-exit-landing"/>
+      <property name="destination_id" value="cave-entrance"/>
+      <property name="map_id" value="sample-cave"/>
+      <property name="tile_id" value="cave-entrance"/>
+     </properties>
+    </property>
+   </properties>
+  </object>
+  <object id="43" name="test" x="56.9091" y="120.909">
+   <properties>
+    <property name="tele" type="class" propertytype="eager_omega::demo::level::TeleportTile">
+     <properties>
+      <property name="destination_id" value="cave-exit"/>
+      <property name="map_id" value="sample"/>
+      <property name="tile_id" value="cave-exit"/>
      </properties>
     </property>
    </properties>

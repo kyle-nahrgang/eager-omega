@@ -11,17 +11,11 @@ use crate::{
 
 pub(super) fn plugin(app: &mut App) {
     app.load_resource::<LevelAssets>()
+        .register_type::<MapId>()
         .register_type::<SpawnTile>()
         .register_type::<TeleportTile>()
-        .register_type::<TeleportDestination>()
-        .add_systems(
-            Update,
-            (
-                handle_map_added,
-                set_player_spawn_from_tile,
-                player_teleport,
-            ),
-        );
+        .register_type::<TileId>()
+        .add_systems(Update, (set_player_spawn_from_tile, player_teleport));
 }
 
 #[derive(Resource, Asset, Clone, Reflect)]
@@ -43,12 +37,6 @@ impl FromWorld for LevelAssets {
     }
 }
 
-#[derive(Resource, Debug, Reflect)]
-#[reflect(Resource)]
-struct CurrentMap {
-    path: String,
-}
-
 #[derive(Component, Default, Debug, Reflect, PartialEq, Eq, Clone, Copy)]
 #[reflect(Component, Default)]
 struct SpawnTile;
@@ -56,15 +44,26 @@ struct SpawnTile;
 #[derive(Component, Default, Debug, Reflect)]
 #[reflect(Component, Default)]
 struct TeleportTile {
-    world_id: String,
-    map_id: String,
-    tile_id: String,
+    destination_id: String,
 }
 
 #[derive(Component, Default, Debug, Reflect)]
 #[reflect(Component, Default)]
-struct TeleportDestination {
+struct TileId {
     id: String,
+}
+
+#[derive(Component, Default, Debug, Reflect)]
+#[reflect(Component, Default)]
+struct MapId {
+    id: String,
+}
+
+#[derive(Resource, Debug, Reflect)]
+#[reflect(Resource)]
+struct SwitchMaps {
+    transform: GlobalTransform,
+    destination_map: String,
 }
 
 /// A system that spawns the main level.
@@ -98,17 +97,6 @@ pub fn spawn_level(
         );
 }
 
-fn handle_map_added(
-    mut commands: Commands,
-    mut maps: Query<(Entity, &TiledWorld), Added<TiledWorld>>,
-) {
-    for (_, map) in &mut maps {
-        commands.insert_resource(CurrentMap {
-            path: map.0.path().unwrap().to_string(),
-        });
-    }
-}
-
 fn set_player_spawn_from_tile(
     mut player_query: Query<&mut Transform, With<Player>>,
     spawn_tile: Query<&GlobalTransform, Added<SpawnTile>>,
@@ -127,8 +115,7 @@ fn set_player_spawn_from_tile(
 fn player_teleport(
     mut player_query: Query<&mut Transform, With<Player>>,
     tiles: Query<(&TeleportTile, &GlobalTransform), Without<Player>>,
-    destinations: Query<(&TeleportDestination, &GlobalTransform)>,
-    current_map: If<Res<CurrentMap>>,
+    destinations: Query<(&TileId, &GlobalTransform)>,
 ) {
     let tile_size = 16.0;
 
@@ -141,20 +128,18 @@ fn player_teleport(
                 tile_transform.translation() + Vec3::new(tile_size * 0.5, -tile_size * 0.5, 0.0);
 
             // Check if player is inside this tile (simple AABB check)
-            let half_size = Vec2::new(tile_size * 0.5, tile_size * 0.5);
+            let half_size = Vec2::new(tile_size * 0.75, tile_size * 0.75);
             let delta = Vec2::new(
                 (player_pos.x - tile_center.x).abs(),
                 (player_pos.y - tile_center.y).abs(),
             );
 
             if delta.x <= half_size.x && delta.y <= half_size.y {
-                for (dest, dest_transform) in &destinations {
-                    if current_map.path != teleport.map_id {
-                        info!("must switch maps before we can teleport...");
-                    } else if dest.id == teleport.tile_id {
+                for (tile_id, dest_transform) in &destinations {
+                    if tile_id.id == teleport.destination_id {
                         // Player entered the teleport tile!
                         player.translation = dest_transform.translation();
-                        info!("Teleported player to {:?}", dest.id);
+                        info!("Teleported player to {:?}", tile_id.id);
                     }
                 }
             }
